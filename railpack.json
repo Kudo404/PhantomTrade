@@ -1,7 +1,15 @@
+
 {
   "$schema": "https://schema.railpack.com",
   "provider": "php",
   "packages": {
     "php": "8.2"
+  },
+  "steps": {
+    "install:composer": {
+      "commands": [
+        "composer install --optimize-autoloader --no-scripts --no-interaction --no-dev"
+      ]
+    }
   }
 }
