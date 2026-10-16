@@ -13,6 +13,13 @@
     "pkg-config",
     "libcurl4-openssl-dev",
     "libzip-dev",
-    "libsodium-dev"
-  ]
+    "libsodium-dev",
+    "libpq-dev"
+  ],
+  "deploy": {
+    "aptPackages": [
+      "...",
+      "libpq5"
+    ]
+  }
 }
