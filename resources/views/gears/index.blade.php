@@ -1,182 +1,211 @@
+
 @extends('layouts.app')
 
 @section('title', 'Gear Shop — Phantom Trade')
 
 @section('content')
+<div style="max-width: 1200px; margin: 0 auto; padding: 10px 0;">
 
-    {{-- ═══ PAGE HEADER ═══════════════════════════════ --}}
-    <div class="flex justify-between items-end gap-4 mb-7 flex-wrap">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:24px;">
         <div>
-            <h1 class="text-[24px] font-semibold tracking-[-0.02em] text-[var(--text)] mb-1">
-                Gear Shop
-            </h1>
-            <p class="text-[13.5px] text-[var(--text-secondary)]">
-                Browse and purchase gear for your hunts.
-            </p>
+            <h1 style="margin:0 0 6px; font-size:26px; color:var(--text);">Gear Shop</h1>
+            <p style="margin:0; color:var(--text-secondary); font-size:14px;">Browse and purchase equipment for your hunts.</p>
         </div>
 
-        <div class="flex gap-2 flex-wrap items-center">
-            <div class="relative">
-                <i data-lucide="search" class="absolute left-[12px] top-[50%] [transform:translateY(-50%)] w-[15px] h-[15px] text-[var(--text-muted)] pointer-events-none"></i>
-                <input type="text" id="gearSearch" placeholder="Search gear…" class="pt-2 pr-3 pb-2 pl-[34px] [border:1px_solid_var(--border)] rounded-[var(--radius-sm)] bg-[var(--surface)] text-[var(--text)] text-[13.5px] outline-none w-[220px] [font-family:inherit]"
-                      >
-            </div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <input
+                type="search"
+                id="gearSearch"
+                placeholder="Search gear..."
+                aria-label="Search gear"
+                style="padding:10px 12px; width:220px; max-width:100%; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:8px;"
+            >
 
             @if (auth()->user()->isAdmin())
-                <a href="/gears/create" class="btn">
-                    <i data-lucide="plus"></i>
-                    <span>Add Gear</span>
+                <a href="{{ url('/gears/create') }}" class="btn" style="text-decoration:none;">
+                    + Add Gear
                 </a>
             @endif
         </div>
     </div>
 
-    {{-- ═══ FILTER CHIPS ═════════════════════════════ --}}
-    <div class="flex gap-2 mb-5 flex-wrap">
-        <a href="/gears" class="inline-flex items-center gap-1.5 pt-1.5 pr-3 pb-1.5 pl-3 text-[12.5px] font-medium rounded-[20px] no-underline {{ !request('type') ? '[border:1px_solid_var(--accent)]' : '[border:1px_solid_var(--border)]' }} {{ !request('type') ? 'bg-[var(--accent)]' : 'bg-[var(--surface)]' }} {{ !request('type') ? 'text-[#fff]' : 'text-[var(--text-secondary)]' }}"
-          >
-            <i data-lucide="layers" class="w-[13px] h-[13px]"></i>
-            All
+    @if (session('success'))
+        <div style="padding:12px 16px; margin-bottom:16px; color:#166534; background:#dcfce7; border-radius:8px;">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div style="padding:12px 16px; margin-bottom:16px; color:#991b1b; background:#fee2e2; border-radius:8px;">
+            @foreach ($errors->all() as $error)
+                <div>{{ $error }}</div>
+            @endforeach
+        </div>
+    @endif
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+        <a href="{{ url('/gears') }}"
+           style="padding:8px 14px; border-radius:20px; text-decoration:none; border:1px solid var(--border); background:{{ !request('type') ? 'var(--accent)' : 'var(--surface)' }}; color:{{ !request('type') ? '#fff' : 'var(--text)' }};">
+            All Gear
         </a>
 
         @foreach ($types as $type)
-            @php $active = request('type') === $type; @endphp
-            <a href="/gears?type={{ $type }}" class="inline-flex items-center gap-1.5 pt-1.5 pr-3 pb-1.5 pl-3 text-[12.5px] font-medium rounded-[20px] no-underline {{ $active ? '[border:1px_solid_var(--accent)]' : '[border:1px_solid_var(--border)]' }} {{ $active ? 'bg-[var(--accent)]' : 'bg-[var(--surface)]' }} {{ $active ? 'text-[#fff]' : 'text-[var(--text-secondary)]' }}"
-              >
-                <i data-lucide="{{ $type === 'trap' ? 'target' : ($type === 'ward' ? 'shield' : ($type === 'anchor' ? 'anchor' : 'scan-line')) }}" class="w-[13px] h-[13px]"></i>
+            <a href="{{ url('/gears') }}?type={{ urlencode($type) }}"
+               style="padding:8px 14px; border-radius:20px; text-decoration:none; border:1px solid var(--border); background:{{ request('type') === $type ? 'var(--accent)' : 'var(--surface)' }}; color:{{ request('type') === $type ? '#fff' : 'var(--text)' }};">
                 {{ ucfirst($type) }}
             </a>
         @endforeach
     </div>
 
-    {{-- ═══ GEAR CATALOG ═════════════════════════════ --}}
     @if ($gears->count())
-        <div class="[border:1px_solid_var(--border)] rounded-[var(--radius)] bg-[var(--surface)] overflow-hidden">
+        <div style="overflow-x:auto; border:1px solid var(--border); border-radius:12px; background:var(--surface);">
+            <table style="width:100%; min-width:720px; border-collapse:collapse; text-align:left;">
+                <thead>
+                    <tr style="background:var(--bg); color:var(--text-secondary); font-size:12px; text-transform:uppercase;">
+                        <th style="padding:14px;">Gear</th>
+                        <th style="padding:14px;">Type</th>
+                        <th style="padding:14px;">Price</th>
+                        <th style="padding:14px;">Energy</th>
+                        <th style="padding:14px; text-align:right;">Actions</th>
+                    </tr>
+                </thead>
 
-            {{-- Header row --}}
-            <div class="grid [grid-template-columns:2.5fr_1fr_1fr_1fr_1.2fr] gap-4 pt-3 pr-5 pb-3 pl-5 bg-[var(--bg)] [border-bottom:1px_solid_var(--border-subtle)] text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--text-muted)]">
-                <div>Gear</div>
-                <div>Type</div>
-                <div>Cost</div>
-                <div>Energy Cost</div>
-                <div class="text-right">Actions</div>
-            </div>
+                <tbody>
+                    @foreach ($gears as $gear)
+                        <tr class="gear-row"
+                            data-name="{{ strtolower($gear->name) }}"
+                            data-description="{{ strtolower($gear->description) }}"
+                            style="border-top:1px solid var(--border);">
 
-            @foreach ($gears as $gear)
-                <div class="gear-row grid [grid-template-columns:2.5fr_1fr_1fr_1fr_1.2fr] gap-4 pt-3.5 pr-5 pb-3.5 pl-5 [border-bottom:1px_solid_var(--border-subtle)] items-center" data-name="{{ strtolower($gear->name) }}"
-                    >
+                            <td style="padding:12px 14px;">
+                                <div style="display:flex; align-items:center; gap:12px; min-width:240px;">
+                                    @if ($gear->image_path)
+                                        <img
+                                            src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($gear->image_path) }}"
+                                            alt="{{ $gear->name }}"
+                                            loading="lazy"
+                                            style="width:76px; height:76px; flex-shrink:0; object-fit:cover; border-radius:10px; border:1px solid var(--border); background:var(--bg);"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                        >
+                                        <div style="display:none; width:76px; height:76px; flex-shrink:0; align-items:center; justify-content:center; border-radius:10px; background:var(--bg); color:var(--text-secondary);">
+                                            ⚙
+                                        </div>
+                                    @else
+                                        <div style="width:76px; height:76px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--bg); color:var(--text-secondary); font-size:26px;">
+                                            @switch($gear->type)
+                                                @case('trap') 🎯 @break
+                                                @case('ward') 🛡️ @break
+                                                @case('anchor') ⚓ @break
+                                                @case('scanner') 📡 @break
+                                                @default ⚙️
+                                            @endswitch
+                                        </div>
+                                    @endif
 
-                    {{-- Gear --}}
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-9 h-9 rounded-lg bg-[var(--bg)] flex items-center justify-center shrink-0">
-                            <i data-lucide="{{ $gear->type === 'trap' ? 'target' : ($gear->type === 'ward' ? 'shield' : ($gear->type === 'anchor' ? 'anchor' : 'scan-line')) }}" class="w-4 h-4 text-[var(--text-secondary)]"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <div class="text-[13.5px] font-medium text-[var(--text)] whitespace-nowrap overflow-hidden text-ellipsis">
-                                {{ $gear->name }}
-                            </div>
-                            <div class="text-[11.5px] text-[var(--text-muted)] whitespace-nowrap overflow-hidden text-ellipsis">
-                                {{ \Illuminate\Support\Str::limit($gear->description, 55) }}
-                            </div>
-                        </div>
-                    </div>
+                                    <div style="min-width:0;">
+                                        <a href="{{ url('/gears/'.$gear->id) }}"
+                                           style="font-size:14px; font-weight:600; color:var(--text); text-decoration:none;">
+                                            {{ $gear->name }}
+                                        </a>
 
-                    {{-- Type --}}
-                    <div>
-                        <span class="type-tag">{{ $gear->type }}</span>
-                    </div>
+                                        <div style="margin-top:5px; font-size:12px; line-height:1.5; color:var(--text-secondary);">
+                                            {{ \Illuminate\Support\Str::limit($gear->description, 75) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
 
-                    {{-- Ecto --}}
-                    <div class="text-[13.5px] text-[var(--text)] font-medium">
-                        ₱ {{ $gear->ecto_cost }}
-                    </div>
+                            <td style="padding:14px; color:var(--text-secondary);">
+                                <span class="type-tag">{{ ucfirst($gear->type) }}</span>
+                            </td>
 
-                    {{-- Energy --}}
-                    <div class="text-[13.5px] text-[var(--text-secondary)]">
-                        <i data-lucide="zap" style="width:14px; height:14px; color:#f59e0b; display:inline-block; vertical-align:middle; margin-right:2px;"></i> {{ $gear->energy_cost }}
-                    </div>
+                            <td style="padding:14px; white-space:nowrap; font-weight:600; color:var(--text);">
+                                ₱ {{ number_format($gear->ecto_cost) }}
+                            </td>
 
-                    {{-- Actions --}}
-                    <div class="flex gap-1.5 justify-end">
-                        @if (auth()->user()->isAdmin())
-                            <a href="/gears/{{ $gear->id }}"
-                               title="View details" class="w-[34px] h-[34px] rounded-[var(--radius-sm)] [border:1px_solid_var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] cursor-pointer flex items-center justify-center [transition:all_0.12s] hover:bg-[var(--bg)] hover:text-[var(--text)]"
-                              
-                              
-                              >
-                                <i data-lucide="eye" class="w-[15px] h-[15px]"></i>
-                            </a>
-                        @endif
+                            <td style="padding:14px; white-space:nowrap; color:var(--text-secondary);">
+                                ⚡ {{ $gear->energy_cost }}
+                            </td>
 
-                        <form method="POST" action="/gears/{{ $gear->id }}/buy" class="mt-0 mr-0 mb-0 ml-0">
-                            @csrf
-                            <button type="submit"
-                                    title="Buy 1" class="w-[34px] h-[34px] rounded-[var(--radius-sm)] [border:1px_solid_var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] cursor-pointer flex items-center justify-center [transition:all_0.12s] hover:bg-[var(--bg)] hover:text-[var(--text)]"
-                                   
-                                   
-                                   >
-                                <i data-lucide="shopping-cart" class="w-[15px] h-[15px]"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            @endforeach
+                            <td style="padding:14px;">
+                                <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px;">
+                                    @if (auth()->user()->isAdmin())
+                                        <a href="{{ url('/gears/'.$gear->id) }}"
+                                           title="View gear details"
+                                           aria-label="View {{ $gear->name }}"
+                                           style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border:1px solid var(--border); border-radius:8px; color:var(--text); text-decoration:none;">
+                                            View
+                                        </a>
+                                    @endif
+
+                                    <form method="POST" action="{{ url('/gears/'.$gear->id.'/buy') }}" style="margin:0;">
+                                        @csrf
+                                        <button type="submit"
+                                                title="Buy {{ $gear->name }}"
+                                                style="padding:9px 12px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); cursor:pointer;">
+                                            Buy
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
 
-        {{-- No search results message (JS toggles) --}}
-        <div id="noResults" class="hidden [border:1px_dashed_var(--border)] rounded-[var(--radius)] bg-[var(--surface)] pt-12 pr-6 pb-12 pl-6 text-center mt-5">
-            <div class="w-11 h-11 mt-0 mr-auto mb-3 ml-auto rounded-full bg-[var(--bg)] flex items-center justify-center">
-                <i data-lucide="search-x" class="w-5 h-5 text-[var(--text-muted)]"></i>
-            </div>
-            <div class="text-[14px] font-semibold text-[var(--text)] mb-1">No matching gear</div>
-            <div class="text-[13px] text-[var(--text-muted)]">Try a different search term.</div>
+        <div id="noResults" style="display:none; padding:32px; text-align:center; color:var(--text-secondary);">
+            No matching gear found. Try another search.
         </div>
     @else
-        <div class="[border:1px_dashed_var(--border)] rounded-[var(--radius)] bg-[var(--surface)] pt-14 pr-6 pb-14 pl-6 text-center">
-            <div class="w-[52px] h-[52px] mt-0 mr-auto mb-4 ml-auto rounded-full bg-[var(--bg)] flex items-center justify-center">
-                <i data-lucide="package-x" class="w-[22px] h-[22px] text-[var(--text-muted)]"></i>
-            </div>
-            <div class="text-[15px] font-semibold text-[var(--text)] mb-1.5">
-                No gear in catalog
-            </div>
-            <div class="text-[13px] text-[var(--text-muted)] mb-5">
+        <div style="padding:48px 20px; text-align:center; border:1px dashed var(--border); border-radius:12px; background:var(--surface);">
+            <div style="font-size:36px; margin-bottom:12px;">👻</div>
+            <h2 style="margin:0 0 8px; color:var(--text);">No gear in the catalog</h2>
+            <p style="margin:0 0 18px; color:var(--text-secondary);">
                 @if (auth()->user()->isAdmin())
-                    Add the first gear item to get started.
+                    Add your first piece of hunting equipment.
                 @else
-                    Check back later — the catalog is being stocked.
+                    Check back later for available equipment.
                 @endif
-            </div>
+            </p>
+
             @if (auth()->user()->isAdmin())
-                <a href="/gears/create" class="btn inline-flex">
-                    <i data-lucide="plus"></i>
-                    <span>Add Gear</span>
+                <a href="{{ url('/gears/create') }}" class="btn" style="text-decoration:none;">
+                    + Add Gear
                 </a>
             @endif
         </div>
     @endif
+</div>
 
-    {{-- ═══ CLIENT-SIDE SEARCH ═══════════════════════ --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const input = document.getElementById('gearSearch');
-            const rows  = document.querySelectorAll('.gear-row');
-            const empty = document.getElementById('noResults');
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('gearSearch');
+    const rows = document.querySelectorAll('.gear-row');
+    const noResults = document.getElementById('noResults');
 
-            if (!input) return;
+    if (!input) return;
 
-            input.addEventListener('input', function () {
-                const q = this.value.toLowerCase().trim();
-                let visible = 0;
+    input.addEventListener('input', function () {
+        const query = this.value.toLowerCase().trim();
+        let visibleCount = 0;
 
-                rows.forEach(row => {
-                    const match = row.dataset.name.includes(q);
-                    row.style.display = match ? '' : 'none';
-                    if (match) visible++;
-                });
+        rows.forEach(function (row) {
+            const searchableText =
+                (row.dataset.name || '') + ' ' +
+                (row.dataset.description || '');
 
-                if (empty) empty.style.display = (visible === 0 && q !== '') ? 'block' : 'none';
-            });
+            const matches = searchableText.includes(query);
+
+            row.style.display = matches ? '' : 'none';
+
+            if (matches) visibleCount++;
         });
-    </script>
 
+        if (noResults) {
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+    });
+});
+</script>
 @endsection

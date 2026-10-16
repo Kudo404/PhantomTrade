@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Gear;
-use Illuminate\Http\Request;
 use App\Models\Inventory;
 use App\Models\Purchase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class GearController extends Controller
 {
@@ -20,7 +21,6 @@ class GearController extends Controller
 
         $gears = $query->latest()->get();
 
-        // For the filter buttons
         $types = ['trap', 'ward', 'anchor', 'scanner'];
 
         return view('gears.index', compact('gears', 'types'));
@@ -30,6 +30,7 @@ class GearController extends Controller
     public function show($id)
     {
         $gear = Gear::findOrFail($id);
+
         return view('gears.show', compact('gear'));
     }
 
@@ -37,33 +38,42 @@ class GearController extends Controller
     public function create()
     {
         $types = ['trap', 'ward', 'anchor', 'scanner'];
+
         return view('gears.create', compact('types'));
     }
 
-        // Buy one unit of this gear → add to my inventory
-        public function buy($id)
+    // BUY ONE UNIT OF THIS GEAR
+    public function buy($id)
     {
-        $gear   = Gear::findOrFail($id);
-        $user   = auth()->user();
+        $gear = Gear::findOrFail($id);
+        $user = auth()->user();
         $userId = $user->id;
 
-        // 1) Check they can afford it
+        // 1. Check affordability
         if (! $user->canAfford($gear->ecto_cost)) {
             return redirect('/gears')
-                ->withErrors(['ecto' => "You need ₱ {$gear->ecto_cost} ecto to buy that. You have {$user->ecto}."]);
+                ->withErrors([
+                    'ecto' => "You need ₱ {$gear->ecto_cost} ecto to buy that. You have {$user->ecto}.",
+                ]);
         }
 
-        // 2) Charge them
+        // 2. Charge the buyer
         $user->spendEcto($gear->ecto_cost);
 
-        // 3) Add to inventory
+        // 3. Add one unit to inventory
         $inventory = Inventory::firstOrCreate(
-            ['user_id' => $userId, 'gear_id' => $gear->id],
-            ['quantity' => 0]
+            [
+                'user_id' => $userId,
+                'gear_id' => $gear->id,
+            ],
+            [
+                'quantity' => 0,
+            ]
         );
+
         $inventory->increment('quantity');
 
-                // 🔔 Notify the buyer
+        // 4. Notify the buyer
         notify(
             $userId,
             'Purchase Confirmed',
@@ -72,35 +82,47 @@ class GearController extends Controller
             'shopping-cart'
         );
 
-                // Log the purchase
+        // 5. Log the purchase
         Purchase::create([
-            'buyer_id'       => $userId,
-            'seller_id'      => null,           // shop has no real seller
-            'gear_id'        => $gear->id,
-            'quantity'       => 1,
+            'buyer_id' => $userId,
+            'seller_id' => null,
+            'gear_id' => $gear->id,
+            'quantity' => 1,
             'price_per_unit' => $gear->ecto_cost,
-            'source'         => 'shop',
+            'source' => 'shop',
         ]);
 
         return redirect('/gears')
-            ->with('success', "Bought 1× {$gear->name} for ₱ {$gear->ecto_cost}! Check your 📦 Inventory.");
+            ->with(
+                'success',
+                "Bought 1× {$gear->name} for ₱ {$gear->ecto_cost}! Check your 📦 Inventory."
+            );
     }
 
-
-
-    // SAVE THE NEW GEAR
+    // SAVE NEW GEAR AND OPTIONAL IMAGE
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'type'        => 'required|in:trap,ward,anchor,scanner',
-            'description' => 'required|string',
-            'ecto_cost'   => 'required|integer|min:0',
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:trap,ward,anchor,scanner',
+            'description' => 'required|string|max:1000',
+            'ecto_cost' => 'required|integer|min:0',
             'energy_cost' => 'required|integer|min:0',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
+
+        // Save the uploaded photo if one was provided.
+        if ($request->hasFile('image')) {
+            $validated['image_path'] = $request->file('image')
+                ->store('gears', 'public');
+        }
+
+        // Remove the upload object from the model data.
+        unset($validated['image']);
 
         Gear::create($validated);
 
-        return redirect('/gears')->with('success', 'Gear added to the shop! ');
+        return redirect('/gears')
+            ->with('success', 'Gear added to the shop!');
     }
 }

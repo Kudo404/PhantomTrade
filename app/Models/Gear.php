@@ -15,24 +15,28 @@ class Gear extends Model
         'description',
         'ecto_cost',
         'energy_cost',
+        'image_path',
     ];
 
-        // ── Relationship: which users own this gear ──
+    // Users who own this gear
     public function inventories()
     {
-        return $this->hasMany(Inventory::class);    
+        return $this->hasMany(Inventory::class);
     }
 
+    // Loadouts using this gear
     public function loadouts()
     {
         return $this->hasMany(Loadout::class);
     }
 
+    // Marketplace listings for this gear
     public function listings()
     {
         return $this->hasMany(Listing::class);
     }
 
+    // Trade proposals involving this gear
     public function tradeProposals()
     {
         return $this->hasMany(TradeProposal::class, 'offered_gear_id');
