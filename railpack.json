@@ -19,7 +19,9 @@
   "deploy": {
     "aptPackages": [
       "...",
-      "libpq5"
+      "libpq5",
+      "libsodium23",
+      "libonig5"
     ]
   }
 }
