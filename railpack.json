@@ -1,4 +1,3 @@
-
 {
   "$schema": "https://schema.railpack.com",
   "provider": "php",
@@ -6,7 +5,6 @@
     "php": "8.2"
   },
   "buildAptPackages": [
-    "...",
     "bison",
     "re2c",
     "libonig-dev",
@@ -14,14 +12,15 @@
     "libcurl4-openssl-dev",
     "libzip-dev",
     "libsodium-dev",
-    "libpq-dev"
+    "libpq-dev",
+    "libpng-dev"
   ],
   "deploy": {
     "aptPackages": [
-      "...",
       "libpq5",
       "libsodium23",
-      "libonig5"
+      "libonig5",
+      "libpng16-16"
     ]
   }
 }
