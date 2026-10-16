@@ -13,14 +13,16 @@
     "libzip-dev",
     "libsodium-dev",
     "libpq-dev",
-    "libpng-dev"
+    "libpng-dev",
+    "libicu-dev"
   ],
   "deploy": {
     "aptPackages": [
       "libpq5",
       "libsodium23",
       "libonig5",
-      "libpng16-16"
+      "libpng16-16",
+      "libicu76"
     ]
   }
 }
