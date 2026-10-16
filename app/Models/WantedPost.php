@@ -37,7 +37,7 @@ class WantedPost extends Model
     // ── Convenience ───────────────────────────
     public function isOpen(): bool
     {
-        return $this->status === 'open';
+        return $this->status === 'open' && $this->quantity > 0;
     }
 
     public function totalOfferedValue(): int

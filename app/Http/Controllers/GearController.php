@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Gear;
 use App\Models\Inventory;
 use App\Models\Purchase;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class GearController extends Controller
 {
-    // LIST — with optional ?type=trap filter
     public function index(Request $request)
     {
         $query = Gear::query();
@@ -20,13 +21,11 @@ class GearController extends Controller
         }
 
         $gears = $query->latest()->get();
-
         $types = ['trap', 'ward', 'anchor', 'scanner'];
 
         return view('gears.index', compact('gears', 'types'));
     }
 
-    // SHOW ONE
     public function show($id)
     {
         $gear = Gear::findOrFail($id);
@@ -34,7 +33,6 @@ class GearController extends Controller
         return view('gears.show', compact('gear'));
     }
 
-    // SHOW THE ADD FORM
     public function create()
     {
         $types = ['trap', 'ward', 'anchor', 'scanner'];
@@ -42,64 +40,75 @@ class GearController extends Controller
         return view('gears.create', compact('types'));
     }
 
-    // BUY ONE UNIT OF THIS GEAR
     public function buy($id)
     {
-        $gear = Gear::findOrFail($id);
-        $user = auth()->user();
-        $userId = $user->id;
+        $userId = auth()->id();
 
-        // 1. Check affordability
-        if (! $user->canAfford($gear->ecto_cost)) {
-            return redirect('/gears')
-                ->withErrors([
-                    'ecto' => "You need ₱ {$gear->ecto_cost} ecto to buy that. You have {$user->ecto}.",
+        $purchaseDetails = DB::transaction(function () use ($id, $userId) {
+            $gear = Gear::whereKey($id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $user = User::whereKey($userId)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $price = (int) $gear->ecto_cost;
+
+            if (! $user->canAfford($price)) {
+                throw ValidationException::withMessages([
+                    'ecto' => "You need ₱ {$price} ecto to buy this item. Your balance is {$user->ecto}.",
                 ]);
-        }
+            }
 
-        // 2. Charge the buyer
-        $user->spendEcto($gear->ecto_cost);
+            $user->spendEcto($price);
 
-        // 3. Add one unit to inventory
-        $inventory = Inventory::firstOrCreate(
-            [
-                'user_id' => $userId,
+            $inventory = Inventory::where('user_id', $user->id)
+                ->where('gear_id', $gear->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($inventory) {
+                $inventory->increment('quantity');
+            } else {
+                Inventory::create([
+                    'user_id' => $user->id,
+                    'gear_id' => $gear->id,
+                    'quantity' => 1,
+                ]);
+            }
+
+            Purchase::create([
+                'buyer_id' => $user->id,
+                'seller_id' => null,
                 'gear_id' => $gear->id,
-            ],
-            [
-                'quantity' => 0,
-            ]
-        );
+                'quantity' => 1,
+                'price_per_unit' => $price,
+                'source' => 'shop',
+            ]);
 
-        $inventory->increment('quantity');
+            return [
+                'user_id' => $user->id,
+                'gear_name' => $gear->name,
+                'price' => $price,
+            ];
+        });
 
-        // 4. Notify the buyer
         notify(
-            $userId,
+            $purchaseDetails['user_id'],
             'Purchase Confirmed',
-            "You bought 1× {$gear->name} for ₱ {$gear->ecto_cost}.",
+            "You purchased 1 x {$purchaseDetails['gear_name']} for ₱ {$purchaseDetails['price']}.",
             '/purchases',
             'shopping-cart'
         );
 
-        // 5. Log the purchase
-        Purchase::create([
-            'buyer_id' => $userId,
-            'seller_id' => null,
-            'gear_id' => $gear->id,
-            'quantity' => 1,
-            'price_per_unit' => $gear->ecto_cost,
-            'source' => 'shop',
-        ]);
-
         return redirect('/gears')
             ->with(
                 'success',
-                "Bought 1× {$gear->name} for ₱ {$gear->ecto_cost}! Check your 📦 Inventory."
+                "Purchase successful: 1 x {$purchaseDetails['gear_name']} for ₱ {$purchaseDetails['price']}. Check your inventory."
             );
     }
 
-    // SAVE NEW GEAR AND OPTIONAL IMAGE
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -111,18 +120,16 @@ class GearController extends Controller
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        // Save the uploaded photo if one was provided.
         if ($request->hasFile('image')) {
             $validated['image_path'] = $request->file('image')
                 ->store('gears', 'public');
         }
 
-        // Remove the upload object from the model data.
         unset($validated['image']);
 
         Gear::create($validated);
 
         return redirect('/gears')
-            ->with('success', 'Gear added to the shop!');
+            ->with('success', 'Gear added to the shop.');
     }
 }

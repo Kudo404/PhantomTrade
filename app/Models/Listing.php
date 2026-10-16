@@ -15,9 +15,14 @@ class Listing extends Model
         'quantity',
         'price_per_unit',
         'status',
+        'stock_reserved',
     ];
 
-    // ── Relationships ─────────────────────────
+    protected $casts = [
+        'stock_reserved' => 'boolean',
+    ];
+
+    // Relationships
     public function merchant()
     {
         return $this->belongsTo(User::class, 'merchant_id');
@@ -33,7 +38,7 @@ class Listing extends Model
         return $this->hasMany(TradeProposal::class);
     }
 
-    // ── Convenience ───────────────────────────
+    // Convenience methods
     public function totalPrice(): int
     {
         return $this->quantity * $this->price_per_unit;
@@ -47,10 +52,10 @@ class Listing extends Model
     public function statusColor(): string
     {
         return match ($this->status) {
-            'active'    => '#86efac',
-            'sold_out'  => '#fbbf24',
+            'active' => '#86efac',
+            'sold_out' => '#fbbf24',
             'cancelled' => '#fca5a5',
-            default     => '#888',
+            default => '#888',
         };
     }
 }
