@@ -7,6 +7,8 @@
   },
   "buildAptPackages": [
     "...",
-    "bison"
+    "bison",
+    "re2c",
+    "libonig-dev"
   ]
 }
