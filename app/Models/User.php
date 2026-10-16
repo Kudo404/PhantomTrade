@@ -207,4 +207,54 @@ class User extends Authenticatable
     {
         return $this->isAdmin();
     }
+
+    /**
+     * Spectral Rig Resource Tracker & Telemetry for Scenario 3
+     */
+    public function spectralRigSummary(): array
+    {
+        $equipped = $this->loadouts()->with('gear')->get();
+
+        $totalDrain = $equipped->sum(fn ($l) => $l->effective_energy_drain);
+        $hasWard = $equipped->contains(fn ($l) => ($l->gear && $l->gear->type === 'ward') || $l->slot === 'ward');
+        $hasAnchor = $equipped->contains(fn ($l) => ($l->gear && $l->gear->type === 'anchor') || $l->slot === 'anchor');
+        $hasTrap = $equipped->contains(fn ($l) => ($l->gear && $l->gear->type === 'trap') || $l->slot === 'trap');
+        $hasScanner = $equipped->contains(fn ($l) => ($l->gear && $l->gear->type === 'scanner') || $l->slot === 'scanner');
+
+        // Soul Tether Stability Calculation (Scenario 3 Life-Force Drain mechanics):
+        $stability = 100;
+        if (! $hasAnchor && $totalDrain > 15) {
+            $stability -= min(60, ($totalDrain - 15) * 4);
+        } elseif (! $hasAnchor) {
+            $stability -= 15;
+        }
+
+        // Ward absorption rating (0 - 100%)
+        $wardAbsorption = 0;
+        $wardItem = $equipped->first(fn ($l) => ($l->gear && $l->gear->type === 'ward') || $l->slot === 'ward');
+        if ($wardItem) {
+            $baseAbsorption = match ($wardItem->tuning_mode) {
+                'shielded'    => 55,
+                'overclocked' => 25,
+                'stealth'     => 40,
+                default       => 35,
+            };
+            $wardAbsorption = min(95, $baseAbsorption + ($wardItem->ward_reinforcement ?? 0));
+        }
+
+        // Overload status:
+        $isOverloaded = $totalDrain > 50 || ($totalDrain > 25 && ! $hasWard);
+
+        return [
+            'equipped_count'  => $equipped->count(),
+            'total_drain'     => $totalDrain,
+            'stability'       => (int) max(10, min(100, $stability)),
+            'ward_absorption' => (int) $wardAbsorption,
+            'has_ward'        => (bool) $hasWard,
+            'has_anchor'      => (bool) $hasAnchor,
+            'has_trap'        => (bool) $hasTrap,
+            'has_scanner'     => (bool) $hasScanner,
+            'is_overloaded'   => (bool) $isOverloaded,
+        ];
+    }
 }

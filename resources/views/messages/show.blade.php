@@ -4,43 +4,43 @@
 
 @section('content')
 
-    <div class="max-w-[820px] mt-0 mr-auto mb-0 ml-auto">
+    <div style="max-width:820px; margin:0 auto;">
 
         {{-- ═══ CHAT HEADER ═══ --}}
-        <div class="card pt-4 pr-5 pb-4 pl-5 mb-4 flex items-center gap-3.5">
+        <div class="card" style="padding:16px 20px; margin-bottom:16px; display:flex; align-items:center; gap:14px;">
 
-            <a href="/messages"
-              
-               class="flex items-center justify-center w-8 h-8 rounded-md text-[var(--text-secondary)] no-underline shrink-0  hover:bg-[var(--bg)]">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            <a href="/messages" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:6px; color:var(--text-secondary); text-decoration:none; flex-shrink:0;"
+               onmouseover="this.style.background='var(--bg)';"
+               onmouseout="this.style.background='transparent';">
+                <i data-lucide="arrow-left" style="width:16px; height:16px;"></i>
             </a>
 
             @if ($other)
                 @php $isSupport = $other->isCustomerService(); @endphp
 
-                <div class="relative shrink-0">
-                    <div class="w-10 h-10 rounded-full {{ $isSupport ? 'bg-[linear-gradient(135deg,_#7c3aed,_#a78bfa)]' : 'bg-[var(--accent)]' }} text-[#fff] flex items-center justify-center font-semibold text-[16px]">
+                <div style="position:relative; flex-shrink:0;">
+                    <div style="width:40px; height:40px; border-radius:50%; background:{{ $isSupport ? 'linear-gradient(135deg, #7c3aed, #a78bfa)' : 'var(--accent)' }}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:16px;">
                         {{ strtoupper(substr($other->name, 0, 1)) }}
                     </div>
                     @if ($isSupport)
-                        <div class="absolute -bottom-[2px] -right-[2px] w-[18px] h-[18px] rounded-full bg-[#7c3aed] [border:2px_solid_var(--surface)] flex items-center justify-center">
-                            <i data-lucide="headset" class="w-[9px] h-[9px] text-[#fff]"></i>
+                        <div style="position:absolute; bottom:-2px; right:-2px; width:18px; height:18px; border-radius:50%; background:#7c3aed; border:2px solid var(--surface); display:flex; align-items:center; justify-content:center;">
+                            <i data-lucide="headset" style="width:9px; height:9px; color:#fff;"></i>
                         </div>
                     @endif
                 </div>
 
-                <div class="grow min-w-0">
-                    <div class="flex items-center gap-2">
-                        <span class="text-[14.5px] font-semibold text-[var(--text)]">
+                <div style="flex-grow:1; min-width:0;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:14.5px; font-weight:600; color:var(--text);">
                             <x-user-name :user="$other" />
                         </span>
                         @if ($isSupport)
-                            <span class="bg-[rgba(124,58,237,0.12)] text-[#7c3aed] pt-0.5 pr-2 pb-0.5 pl-2 rounded-[10px] text-[9.5px] font-bold uppercase tracking-[0.05em]">
+                            <span style="background:rgba(124,58,237,0.12); color:#7c3aed; padding:2px 8px; border-radius:10px; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">
                                 Customer Service
                             </span>
                         @endif
                     </div>
-                    <div class="text-[11.5px] text-[var(--text-muted)] mt-0.5">
+                    <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
                         {{ $other->roleLabel() }}
                     </div>
                 </div>
@@ -48,22 +48,22 @@
         </div>
 
         {{-- ═══ MESSAGES LIST ═══ --}}
-        <div class="card pt-5 pr-5 pb-5 pl-5 overflow-hidden">
-            <div id="messagesList" class="flex flex-col gap-2.5 max-h-[520px] overflow-y-auto pr-1.5">
+        <div class="card" style="padding:20px; overflow:hidden;">
+            <div id="messagesList" style="display:flex; flex-direction:column; gap:10px; max-height:520px; overflow-y:auto; padding-right:6px;">
 
                 @forelse ($messages as $msg)
                     @php $isMine = $msg->sender_id === auth()->id(); @endphp
 
-                    <div class="flex {{ $isMine ? 'justify-end' : 'justify-start' }}">
-                        <div class="max-w-[75%] [{{ $ismine ? 'background:var(--accent); color:#fff;' : 'background:var(--bg); color:var(--text);' }} padding:10px_14px] rounded-[14px] {{ $isMine ? '[border-bottom-right-radius:4px]' : '[border-bottom-left-radius:4px]' }}">
-                            <div class="text-[13.5px] leading-[1.5] break-words [white-space:pre-wrap]">{{ $msg->body }}</div>
-                            <div class="text-[10.5px] mt-1 [{{ $ismine ? 'color:rgba(255,255,255,0.7);' : 'color:var(--text-muted);' }} text-align:right]">
+                    <div style="display:flex; {{ $isMine ? 'justify-content:flex-end;' : 'justify-content:flex-start;' }}">
+                        <div style="max-width:75%; {{ $isMine ? 'background:var(--accent); color:#fff;' : 'background:var(--bg); color:var(--text);' }} padding:10px 14px; border-radius:14px; {{ $isMine ? 'border-bottom-right-radius:4px;' : 'border-bottom-left-radius:4px;' }}">
+                            <div style="font-size:13.5px; line-height:1.5; word-wrap:break-word; white-space:pre-wrap;">{{ $msg->body }}</div>
+                            <div style="font-size:10.5px; margin-top:4px; {{ $isMine ? 'color:rgba(255,255,255,0.7);' : 'color:var(--text-muted);' }} text-align:right;">
                                 {{ $msg->created_at->format('g:i A') }}
                             </div>
                         </div>
                     </div>
                 @empty
-                    <div class="text-center pt-10 pr-5 pb-10 pl-5 text-[var(--text-muted)] text-[13px]">
+                    <div style="text-align:center; padding:40px 20px; color:var(--text-muted); font-size:13px;">
                         No messages yet. Say hi!
                     </div>
                 @endforelse
@@ -72,16 +72,16 @@
         </div>
 
         {{-- ═══ SEND FORM ═══ --}}
-        <div class="card pt-4 pr-4 pb-4 pl-4 mt-4">
-            <form id="sendForm" method="POST" action="/messages/{{ $conversation->id }}" class="flex gap-2.5 items-end mt-0 mr-0 mb-0 ml-0">
+        <div class="card" style="padding:16px; margin-top:16px;">
+            <form id="sendForm" method="POST" action="/messages/{{ $conversation->id }}" style="display:flex; gap:10px; align-items:flex-end; margin:0;">
                 @csrf
 
                 <textarea name="body" id="messageInput" required maxlength="2000"
                           placeholder="Type a message…"
-                          rows="2" class="flex-1 pt-2.5 pr-3.5 pb-2.5 pl-3.5 [border:1px_solid_var(--border)] rounded-lg bg-[var(--surface)] text-[var(--text)] text-[13.5px] [font-family:inherit] outline-none resize-none min-h-11 max-h-[120px]"
-                         ></textarea>
+                          rows="2"
+                          style="flex:1; padding:10px 14px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); font-size:13.5px; font-family:inherit; outline:none; resize:none; min-height:44px; max-height:120px;"></textarea>
 
-                <button type="submit" class="btn pt-[11px] pr-[18px] pb-[11px] pl-[18px]">
+                <button type="submit" class="btn" style="padding:11px 18px;">
                     <i data-lucide="send"></i>
                     <span>Send</span>
                 </button>
@@ -93,22 +93,20 @@
     {{-- ═══ CHAT SCRIPT ═══ --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const list        = document.getElementById('messagesList');
-            const form        = document.getElementById('sendForm');
-            const input       = document.getElementById('messageInput');
+            const list           = document.getElementById('messagesList');
+            const form           = document.getElementById('sendForm');
+            const input          = document.getElementById('messageInput');
             const conversationId = {{ $conversation->id }};
-            const meId        = {{ auth()->id() }};
+            const meId           = {{ auth()->id() }};
 
             let lastMessageId = {{ $messages->last()->id ?? 0 }};
             let polling       = true;
 
-            // ── Auto-scroll to bottom on load ──
             function scrollToBottom() {
                 list.scrollTop = list.scrollHeight;
             }
             scrollToBottom();
 
-            // ── Render a message bubble ──
             function renderMessage(msg) {
                 const wrapper = document.createElement('div');
                 wrapper.style.cssText = 'display:flex; ' + (msg.is_mine ? 'justify-content:flex-end;' : 'justify-content:flex-start;');
@@ -119,13 +117,11 @@
                     ' padding:10px 14px; border-radius:14px; ' +
                     (msg.is_mine ? 'border-bottom-right-radius:4px;' : 'border-bottom-left-radius:4px;');
 
-                // Body
                 const body = document.createElement('div');
                 body.style.cssText = 'font-size:13.5px; line-height:1.5; word-wrap:break-word; white-space:pre-wrap;';
                 body.textContent = msg.body;
                 bubble.appendChild(body);
 
-                // Time
                 const time = document.createElement('div');
                 time.style.cssText = 'font-size:10.5px; margin-top:4px; ' +
                     (msg.is_mine ? 'color:rgba(255,255,255,0.7);' : 'color:var(--text-muted);') +
@@ -137,14 +133,12 @@
                 return wrapper;
             }
 
-            // ── Send message via AJAX ──
             form.addEventListener('submit', async function (e) {
                 e.preventDefault();
 
                 const body = input.value.trim();
                 if (! body) return;
 
-                // Disable input to prevent double-send
                 const sendBtn = form.querySelector('button[type="submit"]');
                 input.disabled = true;
                 sendBtn.disabled = true;
@@ -164,7 +158,6 @@
                     if (res.ok) {
                         const data = await res.json();
                         if (data.message) {
-                            // Clear the "no messages" placeholder if present
                             if (list.children.length === 1 && list.textContent.includes('No messages yet')) {
                                 list.innerHTML = '';
                             }
@@ -185,7 +178,6 @@
                 }
             });
 
-            // ── Enter to send, Shift+Enter for newline ──
             input.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' && ! e.shiftKey) {
                     e.preventDefault();
@@ -193,7 +185,6 @@
                 }
             });
 
-            // ── Poll for new messages every 5 seconds ──
             async function poll() {
                 if (! polling) return;
 
@@ -218,16 +209,13 @@
                             scrollToBottom();
                         }
                     }
-                } catch (err) {
-                    // Silent fail — will retry
-                }
+                } catch (err) {}
 
                 setTimeout(poll, 5000);
             }
 
             setTimeout(poll, 5000);
 
-            // ── Auto-grow the textarea ──
             input.addEventListener('input', function () {
                 this.style.height = 'auto';
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
@@ -236,7 +224,6 @@
     </script>
 
     <style>
-        /* Smooth scrollbar for messages */
         #messagesList::-webkit-scrollbar { width: 6px; }
         #messagesList::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
         #messagesList::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }

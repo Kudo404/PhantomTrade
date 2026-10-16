@@ -65,10 +65,12 @@ Route::middleware('auth')->group(function () {
     // ─── Inventory ─────────────────────────────
     Route::get('/inventory',                   [InventoryController::class, 'index']);
 
-    // ─── Loadout ───────────────────────────────
+    // ─── Loadout & Spectral Gear Customizer ────
     Route::get('/loadout',                     [LoadoutController::class, 'index']);
     Route::post('/loadout/{gearId}/equip',     [LoadoutController::class, 'equip']);
+    Route::post('/loadout/{gearId}/tune',      [LoadoutController::class, 'tune']);
     Route::post('/loadout/{gearId}/unequip',   [LoadoutController::class, 'unequip']);
+    Route::post('/loadout/reset',              [LoadoutController::class, 'resetAll']);
 
     // ─── Marketplace ───────────────────────────
     Route::get('/marketplace',                 [MarketplaceController::class, 'index']);
@@ -123,8 +125,9 @@ Route::middleware('auth')->group(function () {
     // ─── Map ───────────────────────────────────
     Route::get('/map', [MapController::class, 'index']);
 
-    // ─── Drain Energy (placeholder) ────────────
-    Route::view('/drain', 'placeholders.drain');
+    // ─── Field Haunt & Drain Simulator (Scenario 3) ───
+    Route::get('/drain',                       [LoadoutController::class, 'drainSim']);
+    Route::post('/drain/execute',              [LoadoutController::class, 'executeDrain']);
 
     // ─── Role Applications ─────────────────────
     Route::get('/apply/merchant',  [RoleApplicationController::class, 'showMerchantForm']);

@@ -704,16 +704,18 @@
 
                 <div class="sidebar-section">
                     <div class="sidebar-section-title">Field Ops</div>
+                    <a href="/loadout" class="sidebar-link {{ request()->is('loadout*') ? 'active' : '' }}">
+                        <i data-lucide="sliders"></i>
+                        <span>Loadout</span>
+                    </a>
+                    <a href="/drain" class="sidebar-link {{ request()->is('drain*') ? 'active' : '' }}">
+                        <i data-lucide="zap"></i>
+                        <span>Drain Chamber</span>
+                    </a>
                     <a href="/map" class="sidebar-link {{ request()->is('map*') ? 'active' : '' }}">
                         <i data-lucide="map-pin"></i>
                         <span>Haunt Map</span>
                     </a>
-                    @if (auth()->user()->isGhostHunter())
-                        <a href="/drain" class="sidebar-link {{ request()->is('drain*') ? 'active' : '' }}">
-                            <i data-lucide="battery"></i>
-                            <span>Drain Energy</span>
-                        </a>
-                    @endif
                 </div>
             @endif
         @endauth
