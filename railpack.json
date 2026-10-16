@@ -8,12 +8,5 @@
   "buildAptPackages": [
     "...",
     "bison"
-  ],
-  "steps": {
-    "install:composer": {
-      "commands": [
-        "composer install --optimize-autoloader --no-scripts --no-interaction --no-dev"
-      ]
-    }
-  }
+  ]
 }
