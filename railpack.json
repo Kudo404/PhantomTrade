@@ -9,6 +9,10 @@
     "...",
     "bison",
     "re2c",
-    "libonig-dev"
+    "libonig-dev",
+    "pkg-config",
+    "libcurl4-openssl-dev",
+    "libzip-dev",
+    "libsodium-dev"
   ]
 }
