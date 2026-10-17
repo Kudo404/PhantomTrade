@@ -76,6 +76,18 @@
         </div>
     </section>
 
+    {{-- TACTICAL RADAR STATUS --}}
+    <section class="radar-console mb-4 grid grid-cols-2 gap-3 rounded-2xl p-4 sm:grid-cols-4" aria-label="Radar status">
+        <div class="radar-console__heading col-span-2 flex items-center justify-between sm:col-span-4">
+            <div class="flex items-center gap-2"><span class="radar-live-dot"></span><span class="text-[11px] font-bold uppercase tracking-[.18em]">Field sensor network</span></div>
+            <span class="text-[10px] uppercase tracking-widest opacity-60">PHANTOM // LIVE MAP</span>
+        </div>
+        <div class="radar-stat"><span>Mapped users</span><strong id="radarUserCount">—</strong></div>
+        <div class="radar-stat"><span>Wanted listings</span><strong id="radarWantedCount">—</strong></div>
+        <div class="radar-stat"><span>Deployed devices</span><strong id="radarDeviceCount">—</strong></div>
+        <div class="radar-stat"><span>Powered sensors</span><strong id="radarActiveCount">—</strong></div>
+    </section>
+
     {{-- FILTER CHIPS --}}
     <div class="flex gap-2 mb-4 flex-wrap items-center">
         <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)] mr-1.5">
@@ -215,6 +227,15 @@
         .custom-marker:hover svg {
             filter: drop-shadow(0 6px 12px rgba(15, 23, 42, 0.35));
         }
+
+        .radar-console { color: #d7f7ff; background: radial-gradient(ellipse at 8% 0%, rgba(8,145,178,.18), transparent 48%), linear-gradient(125deg,#071521,#0b1e2b 60%,#0a1723); border: 1px solid rgba(34,211,238,.22); box-shadow: inset 0 1px rgba(255,255,255,.035), 0 10px 28px rgba(2,8,23,.12); }
+        .radar-console__heading { color: #67e8f9; padding-bottom: 3px; }
+        .radar-live-dot { width: 7px; height: 7px; display: inline-block; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 4px rgba(52,211,153,.12), 0 0 12px #34d399; animation: radarLive 1.8s ease-in-out infinite; }
+        .radar-stat { min-width: 0; padding: 12px; border-radius: 11px; background: rgba(148,211,231,.055); border: 1px solid rgba(148,211,231,.1); }
+        .radar-stat span { display:block; color:#8baabd; font-size:10px; text-transform:uppercase; letter-spacing:.09em; line-height:1.5; }
+        .radar-stat strong { display:block; margin-top:5px; color:#e6fbff; font-size:25px; font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; }
+        @keyframes radarLive { 50% { opacity:.45; box-shadow:0 0 0 7px rgba(52,211,153,.04),0 0 5px #34d399; } }
+        @media (prefers-reduced-motion: reduce) { .radar-live-dot { animation:none; } }
 
         /* Animated field-radar effects for deployed equipment */
         .radar-marker { background: transparent !important; border: 0 !important; }
@@ -514,6 +535,16 @@
                 equipmentRadii.push(circle);
                 allCoords.push([lat, lng]);
             });
+
+            // Populate the HUD from the map data already loaded by Laravel.
+            const setHudCount = function (id, value) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = String(value);
+            };
+            setHudCount('radarUserCount', userPins.length);
+            setHudCount('radarWantedCount', wantedPins.length);
+            setHudCount('radarDeviceCount', equipmentPins.length);
+            setHudCount('radarActiveCount', equipmentPins.filter(function (device) { return !!device.powered; }).length);
 
             function escapeHtml(value) {
                 return String(value).replace(/[&<>"']/g, function (character) {
