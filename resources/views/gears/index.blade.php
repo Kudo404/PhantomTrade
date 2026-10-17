@@ -29,12 +29,6 @@
         </div>
     </div>
 
-    @if (session('success'))
-        <div style="padding:12px 16px; margin-bottom:16px; color:#166534; background:#dcfce7; border-radius:8px;">
-            {{ session('success') }}
-        </div>
-    @endif
-
     @if ($errors->any())
         <div style="padding:12px 16px; margin-bottom:16px; color:#991b1b; background:#fee2e2; border-radius:8px;">
             @foreach ($errors->all() as $error)
