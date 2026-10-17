@@ -930,12 +930,14 @@
                 <div class="sidebar-section">
                     <div class="sidebar-section-title">Field Operations</div>
 
-                    <a href="/loadout" class="sidebar-link {{ request()->is('loadout*') ? 'active' : '' }}">
-                        <i data-lucide="sliders-horizontal"></i><span>Loadout</span>
-                    </a>
-                    <a href="/drain" class="sidebar-link {{ request()->is('drain*') ? 'active' : '' }}">
-                        <i data-lucide="zap"></i><span>Drain Chamber</span>
-                    </a>
+                    @if (auth()->user()->isGhostHunter())
+                        <a href="/loadout" class="sidebar-link {{ request()->is('loadout*') ? 'active' : '' }}">
+                            <i data-lucide="sliders-horizontal"></i><span>Loadout</span>
+                        </a>
+                        <a href="/drain" class="sidebar-link {{ request()->is('drain*') ? 'active' : '' }}">
+                            <i data-lucide="zap"></i><span>Drain Chamber</span>
+                        </a>
+                    @endif
                     <a href="/map" class="sidebar-link {{ request()->is('map*') ? 'active' : '' }}">
                         <i data-lucide="map-pin"></i><span>Haunt Map</span>
                     </a>
