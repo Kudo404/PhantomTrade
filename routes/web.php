@@ -131,6 +131,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/protection', [ProtectionController::class, 'index']);
     Route::post('/protection/deploy', [ProtectionController::class, 'deploy']);
     Route::post('/protection/{id}/battery', [ProtectionController::class, 'replaceBattery']);
+    Route::post('/protection/{id}/recharge', [ProtectionController::class, 'recharge']);
     Route::post('/protection/{id}/deactivate', [ProtectionController::class, 'deactivate']);
 
     // ─── Field Haunt & Drain Simulator (Scenario 3) ───
