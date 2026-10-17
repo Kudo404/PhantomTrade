@@ -76,6 +76,14 @@
                         {{ $res['frequency_matched'] ? '✅ Resonance Locked' : '❌ Frequency Mismatch' }}
                     </span>
                 </div>
+                <div>
+                    <span class="text-[var(--text-muted)] block text-[10.5px]">Energy Consumed</span>
+                    <span class="font-bold text-[#d97706]">-{{ $res['energy_spent'] }} EP</span>
+                </div>
+                <div>
+                    <span class="text-[var(--text-muted)] block text-[10.5px]">Life-Force Lost</span>
+                    <span class="font-bold text-[#8b5cf6]">-{{ $res['life_force_lost'] }} LP</span>
+                </div>
             </div>
         </div>
     @endif
@@ -128,6 +136,68 @@
                 <span class="text-[11px] text-[var(--text-secondary)] block mt-0.5">{{ $telemetry['has_trap'] ? 'Capture Ready' : 'Trap Required' }}</span>
             </div>
         </div>
+    </div>
+
+    {{-- ═══ PERSISTENT SPECTRAL RESERVES ═══════════════ --}}
+    <div class="p-5 border border-[var(--border)] rounded-[var(--radius)] bg-[var(--surface)] mb-8 shadow-sm">
+        <div class="flex items-start justify-between gap-4 flex-wrap mb-4">
+            <div>
+                <h3 class="text-[15px] font-bold text-[var(--text)]">Spectral Reserves</h3>
+                <p class="text-[12px] text-[var(--text-secondary)] mt-1">Every encounter consumes rig energy and life-force. Both reserves persist between visits.</p>
+            </div>
+            @if ($user->energy < \App\Models\User::MAX_ENERGY || $user->life_force < \App\Models\User::MAX_LIFE_FORCE)
+                <form action="/drain/recover" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-secondary text-[12px] py-2">
+                        <i data-lucide="battery-charging" class="w-4 h-4 inline-block mr-1"></i>
+                        Recharge — {{ \App\Models\User::RECOVERY_ECTO_COST }} Ecto
+                    </button>
+                </form>
+            @else
+                <span class="px-3 py-2 rounded-lg text-[12px] font-semibold text-[#059669] bg-[rgba(16,185,129,0.08)]">Reserves fully charged</span>
+            @endif
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[12px] font-semibold text-[var(--text-secondary)]">Rig Energy</span>
+                    <span class="text-[13px] font-bold text-[#d97706]">{{ $user->energy }} / {{ \App\Models\User::MAX_ENERGY }} EP</span>
+                </div>
+                <div class="h-2.5 rounded-full overflow-hidden bg-[var(--bg)] border border-[var(--border-subtle)]">
+                    <div class="h-full rounded-full bg-[#f59e0b]" style="width: {{ min(100, max(0, $user->energy)) }}%"></div>
+                </div>
+            </div>
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[12px] font-semibold text-[var(--text-secondary)]">Life-Force</span>
+                    <span class="text-[13px] font-bold text-[#8b5cf6]">{{ $user->life_force }} / {{ \App\Models\User::MAX_LIFE_FORCE }} LP</span>
+                </div>
+                <div class="h-2.5 rounded-full overflow-hidden bg-[var(--bg)] border border-[var(--border-subtle)]">
+                    <div class="h-full rounded-full bg-[#8b5cf6]" style="width: {{ min(100, max(0, $user->life_force)) }}%"></div>
+                </div>
+            </div>
+        </div>
+        @if ($user->energy <= 0 || $user->life_force <= 0)
+            <p class="mt-4 text-[12px] font-semibold text-[#e11d48]">Hunt lockout active: recharge your spectral reserves before attempting another encounter.</p>
+        @else
+            <p class="mt-4 text-[11px] text-[var(--text-muted)]">Recovery restores both reserves to 100 for {{ \App\Models\User::RECOVERY_ECTO_COST }} Ecto. Encounters are rejected if either reserve cannot cover the full cost.</p>
+        @endif
+        @if ($errors->has('encounter') || $errors->has('recovery'))
+            <div class="mt-4 p-3 rounded-lg border border-[#e11d48] bg-[rgba(225,29,72,0.06)] text-[12px] text-[#e11d48]">
+                {{ $errors->first('encounter') ?: $errors->first('recovery') }}
+            </div>
+        @endif
+        @if (session('success'))
+            <div class="mt-4 p-3 rounded-lg border border-[#10b981] bg-[rgba(16,185,129,0.06)] text-[12px] text-[#059669]">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if (session('info'))
+            <div class="mt-4 p-3 rounded-lg border border-[var(--border)] text-[12px] text-[var(--text-secondary)]">
+                {{ session('info') }}
+            </div>
+        @endif
     </div>
 
     {{-- ═══ SPECTRAL ENCOUNTER SIMULATION PODS ═════════ --}}
@@ -185,9 +255,9 @@
                 <form action="/drain/execute" method="POST">
                     @csrf
                     <input type="hidden" name="entity_id" value="{{ $ent['id'] }}">
-                    <button type="submit" class="btn w-full text-[12.5px] py-2 flex items-center justify-center gap-2 {{ $ent['danger'] === 'Extreme' ? 'bg-[#e11d48] hover:bg-[#be123c]' : '' }}">
+                    <button type="submit" class="btn w-full text-[12.5px] py-2 flex items-center justify-center gap-2 {{ $ent['danger'] === 'Extreme' ? 'bg-[#e11d48] hover:bg-[#be123c]' : '' }}" {{ ($user->energy <= 0 || $user->life_force <= 0) ? 'disabled' : '' }}>
                         <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-                        <span>Engage Chamber</span>
+                        <span>{{ ($user->energy <= 0 || $user->life_force <= 0) ? 'Recharge Required' : 'Engage Chamber' }}</span>
                     </button>
                 </form>
 
