@@ -76,6 +76,13 @@ class ProtectionController extends Controller
                 return null;
             }
 
+            // A physical item can only be deployed once per owned quantity.
+            if ($inventory->quantity === 1) {
+                $inventory->delete();
+            } else {
+                $inventory->decrement('quantity');
+            }
+
             $radius = match ($gear->type) {
                 'ward' => 100,
                 'anchor' => 60,
