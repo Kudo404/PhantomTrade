@@ -9,7 +9,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:24px;">
         <div>
             <h1 style="margin:0 0 6px; font-size:26px; color:var(--text);">Gear Shop</h1>
-            <p style="margin:0; color:var(--text-secondary); font-size:14px;">Browse and purchase equipment for your hunts.</p>
+            <p style="margin:0; color:var(--text-secondary); font-size:14px;">Buy protective wards, hunting equipment, and replacement batteries.</p>
         </div>
 
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -91,6 +91,7 @@
                                                 @case('ward') 🛡️ @break
                                                 @case('anchor') ⚓ @break
                                                 @case('scanner') 📡 @break
+                                                @case('battery') 🔋 @break
                                                 @default ⚙️
                                             @endswitch
                                         </div>
