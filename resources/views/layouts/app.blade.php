@@ -939,6 +939,9 @@
                     <a href="/map" class="sidebar-link {{ request()->is('map*') ? 'active' : '' }}">
                         <i data-lucide="map-pin"></i><span>Haunt Map</span>
                     </a>
+                    <a href="/protection" class="sidebar-link {{ request()->is('protection*') ? 'active' : '' }}">
+                        <i data-lucide="shield-check"></i><span>Spectral Protection</span>
+                    </a>
                 </div>
             @endif
         @endauth
