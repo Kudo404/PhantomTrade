@@ -40,6 +40,40 @@ class GearController extends Controller
         return view('gears.create', compact('types'));
     }
 
+    public function edit($id)
+    {
+        $gear = Gear::findOrFail($id);
+        $types = ['trap', 'ward', 'anchor', 'scanner'];
+
+        return view('gears.edit', compact('gear', 'types'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $gear = Gear::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:trap,ward,anchor,scanner',
+            'description' => 'required|string|max:1000',
+            'ecto_cost' => 'required|integer|min:0',
+            'energy_cost' => 'required|integer|min:0',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
+
+        if ($request->hasFile('image')) {
+            $validated['image_path'] = $request->file('image')
+                ->store('gears', 'public');
+        }
+
+        unset($validated['image']);
+
+        $gear->update($validated);
+
+        return redirect('/gears')
+            ->with('success', 'Gear updated successfully.');
+    }
+
     public function checkout($id)
     {
         $gear = Gear::findOrFail($id);
