@@ -20,6 +20,51 @@
 
     </div>
 
+
+    @if (session('success'))
+        <div class="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">{{ session('success') }}</div>
+    @endif
+    @if ($errors->any())
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{{ $errors->first() }}</div>
+    @endif
+
+    <section class="mb-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+                <h2 class="font-semibold text-[var(--text)]">Deploy equipment on the Haunt Map</h2>
+                <p class="text-sm text-[var(--text-secondary)]">Select equipment you own, then click the existing map to choose where to deploy it. Deployment does not grant hunting access.</p>
+            </div>
+            <a href="/gears" class="btn">Browse Gear Shop</a>
+        </div>
+        @if ($owned->isEmpty())
+            <p class="rounded-lg border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-secondary)]">You have no deployable equipment in your inventory yet. Buy a ward, anchor, trap, or scanner from the Gear Shop first.</p>
+        @else
+            <form method="POST" action="/protection/deploy" id="deployForm" class="grid grid-cols-1 gap-3 md:grid-cols-4">
+                @csrf
+                <div>
+                    <label for="gear_id" class="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">Equipment</label>
+                    <select id="gear_id" name="gear_id" required class="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2.5 text-sm text-[var(--text)]">
+                        <option value="">Choose owned equipment...</option>
+                        @foreach ($owned as $item)
+                            <option value="{{ $item->gear->id }}">{{ $item->gear->name }} ({{ $item->quantity }} owned)</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label for="label" class="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">Label (optional)</label>
+                    <input id="label" name="label" maxlength="80" placeholder="e.g. North entrance" class="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2.5 text-sm text-[var(--text)]">
+                </div>
+                <input type="hidden" id="latitude" name="latitude" required>
+                <input type="hidden" id="longitude" name="longitude" required>
+                <div id="pickedCoordinates" class="self-end rounded-lg bg-[var(--surface-soft)] p-2.5 text-xs text-[var(--text-secondary)]">Click the map to choose a location.</div>
+                <div class="flex items-end">
+                    <button type="submit" class="btn w-full">Deploy on map</button>
+                </div>
+            </form>
+        @endif
+        <p class="mt-3 text-xs text-[var(--text-secondary)]">Civilians, merchants, and other non-hunter users may deploy owned equipment, but hunting remains restricted to Ghost Hunters by the existing hunt routes.</p>
+    </section>
+
     {{-- FILTER CHIPS --}}
     <div class="flex gap-2 mb-4 flex-wrap items-center">
         <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)] mr-1.5">
@@ -265,6 +310,7 @@
             // 4. Data
             const userPins   = @json($userPins);
             const wantedPins = @json($wantedPins);
+            const equipmentPins = @json($equipmentPins);
 
             console.log('userPins:', userPins.length, '| wantedPins:', wantedPins.length);
 
@@ -361,6 +407,61 @@
                 allWantedMarkers.push(marker);
                 allCoords.push([lat, lng]);
             });
+
+
+            // Deployed equipment is rendered on this same Haunt Map.
+            const equipmentMarkers = [];
+            const equipmentColors = { ward: '#2563eb', anchor: '#7c3aed', trap: '#dc2626', scanner: '#0891b2' };
+            equipmentPins.forEach(function (device) {
+                const lat = parseFloat(device.lat);
+                const lng = parseFloat(device.lng);
+                if (isNaN(lat) || isNaN(lng)) return;
+                const color = equipmentColors[device.type] || '#64748b';
+                const marker = L.marker([lat, lng], { icon: makeIcon(color) }).addTo(map);
+                const circle = L.circle([lat, lng], {
+                    radius: device.radius,
+                    color: device.powered ? color : '#64748b',
+                    fillColor: device.powered ? color : '#64748b',
+                    fillOpacity: device.powered ? 0.12 : 0.04,
+                    weight: 2,
+                    dashArray: device.powered ? null : '5 6'
+                }).addTo(map);
+                marker.bindPopup(
+                    '<div style="min-width:190px;font-family:sans-serif;">' +
+                    '<strong>' + escapeHtml(device.name) + '</strong><br>' +
+                    '<span style="font-size:12px;color:#64748b;">' + escapeHtml(device.type) + ' · deployed by ' + escapeHtml(device.owner) + '</span><br>' +
+                    '<span style="font-size:12px;">' + (device.powered ? 'Active · battery ' + device.battery + '%' : 'Inactive / out of battery') + '</span><br>' +
+                    '<span style="font-size:12px;">Radius: ' + device.radius + ' m</span>' +
+                    '</div>'
+                );
+                marker.searchName = device.name.toLowerCase();
+                equipmentMarkers.push(marker);
+                allCoords.push([lat, lng]);
+            });
+
+            function escapeHtml(value) {
+                return String(value).replace(/[&<>"']/g, function (character) {
+                    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character];
+                });
+            }
+
+            // Click the map to set deployment coordinates in the form above.
+            const latInput = document.getElementById('latitude');
+            const lngInput = document.getElementById('longitude');
+            const coordinates = document.getElementById('pickedCoordinates');
+            let placementMarker = null;
+            if (latInput && lngInput && coordinates) {
+                function choosePlacement(latlng) {
+                    latInput.value = latlng.lat.toFixed(7);
+                    lngInput.value = latlng.lng.toFixed(7);
+                    coordinates.textContent = 'Selected: ' + latlng.lat.toFixed(5) + ', ' + latlng.lng.toFixed(5);
+                    if (placementMarker) map.removeLayer(placementMarker);
+                    placementMarker = L.marker(latlng, { draggable: true }).addTo(map).bindPopup('New equipment placement');
+                    placementMarker.on('dragend', function (event) { choosePlacement(event.target.getLatLng()); });
+                }
+                map.on('click', function (event) { choosePlacement(event.latlng); });
+            }
+
 
             // 10. Filters + search state
             const filterBtns    = document.querySelectorAll('.map-filter');
