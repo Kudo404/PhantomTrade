@@ -138,8 +138,7 @@
                                         </a>
                                     @endif
 
-                                    <form method="POST" action="{{ url('/gears/'.$gear->id.'/buy') }}" style="margin:0;">
-                                        @csrf
+                                    <form method="GET" action="{{ url('/gears/'.$gear->id.'/checkout') }}" style="margin:0;">
                                         <button type="submit"
                                                 title="Buy {{ $gear->name }}"
                                                 style="padding:9px 12px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); cursor:pointer;">
