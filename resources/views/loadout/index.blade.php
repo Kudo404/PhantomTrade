@@ -15,7 +15,7 @@
                 Spectral Gear Customizer & Telemetry
             </h1>
             <p class="text-[13.5px] text-[var(--text-secondary)]">
-                Calibrate spirit wards, tune soul-anchors, configure containment frequencies, and monitor live life-force drain.
+                Equip gear you own, check its energy cost, and get ready for a hunt.
             </p>
         </div>
 
@@ -44,7 +44,7 @@
         <div class="flex items-center gap-3 mb-3">
             <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)] flex items-center gap-1.5">
                 <i data-lucide="activity" class="w-3.5 h-3.5 text-[#9333ea]"></i>
-                Biometric & Spectral Resource Telemetry
+                Your Gear Summary
             </span>
             <div class="grow h-[1px] bg-[var(--border)]"></div>
             @if ($telemetry['is_overloaded'])
@@ -63,7 +63,7 @@
             {{-- 1. Energy Drain Rate --}}
             <div class="p-5 border border-[var(--border)] rounded-[var(--radius)] bg-[var(--surface)] shadow-sm relative overflow-hidden">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Life-Force Drain Rate</span>
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Gear Energy per Hunt</span>
                     <i data-lucide="battery-charging" class="w-4 h-4 {{ $telemetry['total_drain'] > 35 ? 'text-[#e11d48]' : 'text-[#f59e0b]' }}"></i>
                 </div>
                 <div class="flex items-baseline gap-2 mb-2">
@@ -165,13 +165,14 @@
     {{-- ═══ TACTICAL SLOT DECK (SCENARIO 3 GEAR CATEGORIES) ═══ --}}
     <div class="flex items-center gap-3 mb-4">
         <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
-            Tactical Equipment Slots
+            Your Equipped Gear
         </span>
         <div class="grow h-[1px] bg-[var(--border)]"></div>
-        <span class="text-[12px] text-[var(--text-secondary)]">Click "Tune / Calibrate" to adjust operational profiles</span>
+        <span class="text-[12px] text-[var(--text-secondary)]">Only gear you own can appear here</span>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-9">
+    @if (count($slots))
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-9">
 
         @foreach ($slots as $slotKey => $slotData)
             @php $eq = $slotData['equipped']; @endphp
@@ -292,7 +293,22 @@
             </div>
         @endforeach
 
-    </div>
+        </div>
+    @else
+        <div class="mb-9 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center">
+            <div class="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--bg)] text-[var(--text-secondary)]">
+                <i data-lucide="package-open" class="h-5 w-5"></i>
+            </div>
+            <h3 class="mb-1 text-[15px] font-semibold text-[var(--text)]">No gear equipped yet</h3>
+            <p class="mx-auto mb-4 max-w-lg text-[13px] text-[var(--text-secondary)]">
+                Your loadout will show slots after you own gear. Buy an item from the Gear Shop or get one through the Marketplace, then equip it here.
+            </p>
+            <div class="flex justify-center gap-3">
+                <a href="/gears" class="btn">Browse Gear Shop</a>
+                <a href="/marketplace" class="btn btn-secondary">Browse Marketplace</a>
+            </div>
+        </div>
+    @endif
 
     {{-- ═══ AVAILABLE INVENTORY (WORKBENCH POOL) ════════ --}}
     <div id="inventorySection" class="flex items-center justify-between gap-3 mb-3.5 flex-wrap">
@@ -304,8 +320,8 @@
         </div>
         <div class="grow h-[1px] bg-[var(--border)]"></div>
         <div class="flex gap-1.5 text-[12px]">
-            <span class="text-[var(--text-muted)]">Slot Compatibility:</span>
-            <span class="font-medium text-[var(--text)]">Wards • Anchors • Traps • Scanners</span>
+            <span class="text-[var(--text-muted)]">Gear Types:</span>
+            <span class="font-medium text-[var(--text)]">Ward • Anchor • Trap • Scanner</span>
         </div>
     </div>
 
@@ -408,7 +424,7 @@
             </div>
             <h3 class="text-[15px] font-semibold text-[var(--text)] mb-1">Your Armory is Empty</h3>
             <p class="text-[13px] text-[var(--text-secondary)] max-w-[420px] mx-auto mb-5">
-                Acquire spirit wards, soul-anchors, and ghost traps from the Gear Shop or peer-to-peer Marketplace to build your spectral hunting rig.
+                Buy gear from the Gear Shop or Marketplace. Your owned items will appear here, ready to equip.
             </p>
             <div class="flex justify-center gap-3">
                 <a href="/gears" class="btn">Browse Gear Shop</a>
