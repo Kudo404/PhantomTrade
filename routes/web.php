@@ -28,6 +28,8 @@ Route::get('/', [HomeController::class, 'index']);
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/gears/create', [GearController::class, 'create']);
     Route::post('/gears',       [GearController::class, 'store']);
+    Route::get('/gears/{id}/edit', [GearController::class, 'edit']);
+    Route::put('/gears/{id}', [GearController::class, 'update']);
 
     Route::get('/admin',                         [AdminController::class, 'home']);
     Route::get('/admin/settings',                [AdminController::class, 'settings']);
