@@ -183,16 +183,6 @@
         @else
             <p class="mt-4 text-[11px] text-[var(--text-muted)]">Recovery restores both reserves to 100 for {{ \App\Models\User::RECOVERY_ECTO_COST }} Ecto. Encounters are rejected if either reserve cannot cover the full cost.</p>
         @endif
-        @if ($errors->has('encounter') || $errors->has('recovery'))
-            <div class="mt-4 p-3 rounded-lg border border-[#e11d48] bg-[rgba(225,29,72,0.06)] text-[12px] text-[#e11d48]">
-                {{ $errors->first('encounter') ?: $errors->first('recovery') }}
-            </div>
-        @endif
-        @if (session('success'))
-            <div class="mt-4 p-3 rounded-lg border border-[#10b981] bg-[rgba(16,185,129,0.06)] text-[12px] text-[#059669]">
-                {{ session('success') }}
-            </div>
-        @endif
         @if (session('info'))
             <div class="mt-4 p-3 rounded-lg border border-[var(--border)] text-[12px] text-[var(--text-secondary)]">
                 {{ session('info') }}
