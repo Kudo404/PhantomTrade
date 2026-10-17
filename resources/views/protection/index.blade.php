@@ -156,15 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    const deployed = @json($devices->map(fn ($d) => [
-        'name' => $d->label ?: $d->gear->name,
-        'type' => $d->gear->type,
-        'lat' => (float) $d->latitude,
-        'lng' => (float) $d->longitude,
-        'radius' => (int) $d->radius_meters,
-        'powered' => (bool) $d->powered,
-        'battery' => (int) $d->battery_percent,
-    ])->values());
+    const deployed = @json($mapDevices);
 
     deployed.forEach(function (device) {
         const color = device.powered ? '#2563eb' : '#64748b';
