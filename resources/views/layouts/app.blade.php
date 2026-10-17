@@ -704,6 +704,23 @@
             background: var(--surface-soft);
         }
 
+        .auto-dismiss-alert {
+            position: relative;
+            animation: alert-enter .2s ease-out;
+            transition: opacity .25s ease, transform .25s ease, margin .25s ease, padding .25s ease;
+        }
+
+        .auto-dismiss-alert.is-dismissing {
+            opacity: 0;
+            transform: translateY(-8px);
+            pointer-events: none;
+        }
+
+        @keyframes alert-enter {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .success-banner, .error-banner {
             margin-bottom: 20px;
             padding: 12px 15px;
@@ -870,7 +887,7 @@
                         <i data-lucide="users"></i><span>Users</span>
                     </a>
                     <a href="/gears" class="sidebar-link {{ request()->is('gears*') ? 'active' : '' }}">
-                        <i data-lucide="package"></i><span>Gear Catalog</span>
+                        <i data-lucide="cog"></i><span>Gear Catalog</span>
                     </a>
                     <a href="/marketplace" class="sidebar-link {{ request()->is('marketplace*') ? 'active' : '' }}">
                         <i data-lucide="store"></i><span>Marketplace</span>
@@ -895,7 +912,7 @@
                         <i data-lucide="layout-dashboard"></i><span>Dashboard</span>
                     </a>
                     <a href="/gears" class="sidebar-link {{ request()->is('gears*') ? 'active' : '' }}">
-                        <i data-lucide="package"></i><span>Gear Shop</span>
+                        <i data-lucide="cog"></i><span>Gear Shop</span>
                     </a>
                     <a href="/marketplace" class="sidebar-link {{ request()->is('marketplace*') ? 'active' : '' }}">
                         <i data-lucide="store"></i><span>Marketplace</span>
@@ -1096,11 +1113,11 @@
 
         <main class="content">
             @if (session('success'))
-                <div class="success-banner">{{ session('success') }}</div>
+                <div class="success-banner auto-dismiss-alert" role="status">{{ session('success') }}</div>
             @endif
 
             @if ($errors->any())
-                <div class="error-banner">
+                <div class="error-banner auto-dismiss-alert" role="alert">
                     @foreach ($errors->all() as $error)
                         <div>{{ $error }}</div>
                     @endforeach
@@ -1365,7 +1382,17 @@
             }
         }
 
+        function autoDismissAlerts() {
+            document.querySelectorAll('.auto-dismiss-alert').forEach(alert => {
+                window.setTimeout(() => {
+                    alert.classList.add('is-dismissing');
+                    window.setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
+            autoDismissAlerts();
             renderIcons();
             applyTheme(document.documentElement.dataset.theme || 'light', false);
 
