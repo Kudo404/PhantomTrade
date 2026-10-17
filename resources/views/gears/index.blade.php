@@ -130,6 +130,12 @@
                             <td style="padding:14px;">
                                 <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px;">
                                     @if (auth()->user()->isAdmin())
+                                        <a href="{{ url('/gears/'.$gear->id.'/edit') }}"
+                                           title="Edit gear"
+                                           aria-label="Edit {{ $gear->name }}"
+                                           style="display:inline-flex; align-items:center; justify-content:center; min-width:36px; height:36px; padding:0 10px; border:1px solid var(--border); border-radius:8px; color:var(--text); text-decoration:none;">
+                                            Edit
+                                        </a>
                                         <a href="{{ url('/gears/'.$gear->id) }}"
                                            title="View gear details"
                                            aria-label="View {{ $gear->name }}"
