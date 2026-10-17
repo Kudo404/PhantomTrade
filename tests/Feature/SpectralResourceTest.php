@@ -30,7 +30,7 @@ class SpectralResourceTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
-            'energy' => 63,
+            'energy' => 78,
             'life_force' => 63,
             'ecto' => 100,
         ]);
@@ -88,7 +88,7 @@ class SpectralResourceTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
-            'energy' => 53,
+            'energy' => 68,
             'life_force' => 63,
             'ecto' => 120,
         ]);
