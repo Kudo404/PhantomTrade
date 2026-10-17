@@ -12,49 +12,7 @@ class ProtectionController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
-
-        $deployableTypes = $user->isCivilian()
-            ? ['ward']
-            : (($user->isGhostHunter() || $user->isAdmin()) ? ['ward', 'anchor', 'trap', 'scanner'] : []);
-
-        $owned = Inventory::with('gear')
-            ->where('user_id', $user->id)
-            ->where('quantity', '>', 0)
-            ->get()
-            ->filter(fn ($item) => $item->gear && in_array($item->gear->type, $deployableTypes, true))
-            ->values();
-
-        $batteries = Inventory::with('gear')
-            ->where('user_id', $user->id)
-            ->where('quantity', '>', 0)
-            ->whereHas('gear', fn ($q) => $q->where('type', 'battery'))
-            ->get();
-
-        $devices = ProtectionDevice::with('gear')
-            ->where('user_id', $user->id)
-            ->latest()
-            ->get()
-            ->map(function ($device) {
-                $device->battery_percent = $device->batteryPercent();
-                $device->remaining_minutes = $device->remainingMinutes();
-                $device->powered = $device->isPowered();
-                return $device;
-            });
-
-        // Prepare plain map data here instead of embedding a nested arrow function
-        // inside Blade's @json directive (which can fail to compile on some Laravel versions).
-        $mapDevices = $devices->map(fn ($d) => [
-            'name' => $d->label ?: $d->gear->name,
-            'type' => $d->gear->type,
-            'lat' => (float) $d->latitude,
-            'lng' => (float) $d->longitude,
-            'radius' => (int) $d->radius_meters,
-            'powered' => (bool) $d->powered,
-            'battery' => (int) $d->battery_percent,
-        ])->values();
-
-        return view('protection.index', compact('user', 'owned', 'batteries', 'devices', 'mapDevices'));
+        return redirect('/map');
     }
 
     public function deploy(Request $request)
@@ -68,12 +26,8 @@ class ProtectionController extends Controller
         ]);
 
         $gear = Gear::findOrFail($data['gear_id']);
-        $allowedTypes = $user->isCivilian()
-            ? ['ward']
-            : (($user->isGhostHunter() || $user->isAdmin()) ? ['ward', 'anchor', 'trap', 'scanner'] : []);
-
-        if (! in_array($gear->type, $allowedTypes, true)) {
-            return back()->withErrors(['gear_id' => 'Your role cannot deploy this equipment.'])->withInput();
+        if (! in_array($gear->type, ['ward', 'anchor', 'trap', 'scanner'], true)) {
+            return back()->withErrors(['gear_id' => 'This item cannot be deployed on the map.'])->withInput();
         }
 
         $device = DB::transaction(function () use ($user, $gear, $data) {
@@ -87,7 +41,6 @@ class ProtectionController extends Controller
                 return null;
             }
 
-            // A physical item can only be deployed once per owned quantity.
             if ($inventory->quantity === 1) {
                 $inventory->delete();
             } else {
@@ -119,13 +72,12 @@ class ProtectionController extends Controller
             return back()->withErrors(['gear_id' => 'You must own this gear before deploying it.'])->withInput();
         }
 
-        return redirect('/protection')->with('success', $gear->name . ' deployed. Its protection radius is ' . $device->radius_meters . ' metres and its battery lasts up to 24 hours.');
+        return redirect('/map')->with('success', $gear->name . ' deployed on the Haunt Map.');
     }
 
     public function replaceBattery(Request $request, $id)
     {
         $user = $request->user();
-
         $device = ProtectionDevice::where('user_id', $user->id)->findOrFail($id);
 
         $replaced = DB::transaction(function () use ($user, $device) {
@@ -155,12 +107,10 @@ class ProtectionController extends Controller
         });
 
         if (! $replaced) {
-            return redirect('/protection')->withErrors([
-                'battery' => 'You need a Standard Spectral Battery. Buy one from the Gear Shop first.',
-            ]);
+            return redirect('/map')->withErrors(['battery' => 'You need a battery item from the Gear Shop to replace the power cell.']);
         }
 
-        return redirect('/protection')->with('success', 'Battery replaced. This device has up to 24 hours of power.');
+        return redirect('/map')->with('success', 'Equipment battery replaced.');
     }
 
     public function recharge(Request $request, $id)
@@ -186,12 +136,10 @@ class ProtectionController extends Controller
         });
 
         if (! $recharged) {
-            return redirect('/protection')->withErrors([
-                'battery' => 'You need 10 Ecto to recharge this device, or you can buy a replacement battery from the Gear Shop.',
-            ]);
+            return redirect('/map')->withErrors(['battery' => 'You need 10 Ecto to recharge this equipment.']);
         }
 
-        return redirect('/protection')->with('success', 'Battery recharged for 10 Ecto. This device has up to 24 hours of power.');
+        return redirect('/map')->with('success', 'Equipment recharged for 10 Ecto.');
     }
 
     public function deactivate(Request $request, $id)
@@ -199,6 +147,6 @@ class ProtectionController extends Controller
         $device = ProtectionDevice::where('user_id', $request->user()->id)->findOrFail($id);
         $device->update(['is_active' => false]);
 
-        return redirect('/protection')->with('success', 'Device switched off.');
+        return redirect('/map')->with('success', 'Equipment switched off.');
     }
 }
