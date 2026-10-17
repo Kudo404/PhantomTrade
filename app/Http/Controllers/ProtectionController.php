@@ -14,16 +14,15 @@ class ProtectionController extends Controller
     {
         $user = auth()->user();
 
+        $deployableTypes = $user->isCivilian()
+            ? ['ward']
+            : (($user->isGhostHunter() || $user->isAdmin()) ? ['ward', 'anchor', 'trap', 'scanner'] : []);
+
         $owned = Inventory::with('gear')
             ->where('user_id', $user->id)
             ->where('quantity', '>', 0)
             ->get()
-            ->filter(function ($item) use ($user) {
-                if (! $item->gear) return false;
-                if ($item->gear->type === 'battery') return false;
-                if ($user->isCivilian()) return $item->gear->type === 'ward';
-                return in_array($item->gear->type, ['ward', 'anchor', 'trap', 'scanner'], true);
-            })
+            ->filter(fn ($item) => $item->gear && in_array($item->gear->type, $deployableTypes, true))
             ->values();
 
         $batteries = Inventory::with('gear')
@@ -59,7 +58,7 @@ class ProtectionController extends Controller
         $gear = Gear::findOrFail($data['gear_id']);
         $allowedTypes = $user->isCivilian()
             ? ['ward']
-            : ['ward', 'anchor', 'trap', 'scanner'];
+            : (($user->isGhostHunter() || $user->isAdmin()) ? ['ward', 'anchor', 'trap', 'scanner'] : []);
 
         if (! in_array($gear->type, $allowedTypes, true)) {
             return back()->withErrors(['gear_id' => 'Your role cannot deploy this equipment.'])->withInput();
