@@ -246,61 +246,157 @@ class LoadoutController extends Controller
     /**
      * Execute a simulated spectral drain test.
      */
+    public function recoverResources()
+    {
+        $userId = auth()->id();
+
+        $recovery = DB::transaction(function () use ($userId) {
+            $user = User::whereKey($userId)->lockForUpdate()->firstOrFail();
+
+            if (
+                $user->energy >= User::MAX_ENERGY
+                && $user->life_force >= User::MAX_LIFE_FORCE
+            ) {
+                return ['status' => 'full'];
+            }
+
+            if ($user->ecto < User::RECOVERY_ECTO_COST) {
+                return ['status' => 'insufficient_ecto'];
+            }
+
+            $user->decrement('ecto', User::RECOVERY_ECTO_COST);
+            $user->update([
+                'energy' => User::MAX_ENERGY,
+                'life_force' => User::MAX_LIFE_FORCE,
+            ]);
+
+            return ['status' => 'recovered'];
+        });
+
+        if ($recovery['status'] === 'full') {
+            return redirect('/drain')->with('info', 'Your energy and life-force reserves are already fully charged.');
+        }
+
+        if ($recovery['status'] === 'insufficient_ecto') {
+            return redirect('/drain')->withErrors([
+                'recovery' => 'Recovery requires ' . User::RECOVERY_ECTO_COST . ' Ecto. Earn Ecto through successful containment before recharging.',
+            ]);
+        }
+
+        return redirect('/drain')->with('success', 'Spectral reserves restored to full. ' . User::RECOVERY_ECTO_COST . ' Ecto spent.');
+    }
+
+    /**
+     * Execute a spectral encounter and persist all resource consequences atomically.
+     */
     public function executeDrain(Request $request)
     {
-        $user = auth()->user();
-
         $validated = $request->validate([
             'entity_id' => 'required|in:poltergeist,banshee,shadow_fiend,ancient_wraith',
         ]);
 
-        $entities = [
-            'poltergeist'   => ['name' => 'Kinetic Poltergeist', 'freq' => 280, 'base_drain' => 22, 'reward' => 20],
-            'banshee'       => ['name' => 'Acoustic Banshee', 'freq' => 480, 'base_drain' => 36, 'reward' => 40],
-            'shadow_fiend'  => ['name' => 'Astral Shadow Fiend', 'freq' => 680, 'base_drain' => 50, 'reward' => 65],
-            'ancient_wraith'=> ['name' => 'Cataclysmic Wraith', 'freq' => 880, 'base_drain' => 68, 'reward' => 100],
+        $targets = [
+            'poltergeist'    => ['name' => 'Kinetic Poltergeist', 'freq' => 280, 'base_drain' => 22, 'reward' => 20],
+            'banshee'        => ['name' => 'Acoustic Banshee', 'freq' => 480, 'base_drain' => 36, 'reward' => 40],
+            'shadow_fiend'   => ['name' => 'Astral Shadow Fiend', 'freq' => 680, 'base_drain' => 50, 'reward' => 65],
+            'ancient_wraith' => ['name' => 'Cataclysmic Wraith', 'freq' => 880, 'base_drain' => 68, 'reward' => 100],
         ];
 
-        $target = $entities[$validated['entity_id']];
-        $telemetry = $user->spectralRigSummary();
+        $target = $targets[$validated['entity_id']];
+        $userId = auth()->id();
 
-        // Telemetry Evaluation
-        $wardAbsorbed = 0;
-        $actualDrain = $target['base_drain'];
+        $outcome = DB::transaction(function () use ($userId, $target) {
+            $user = User::whereKey($userId)->lockForUpdate()->firstOrFail();
+            $telemetry = $user->spectralRigSummary();
 
-        if ($telemetry['has_ward']) {
-            $wardAbsorbed = (int) round(($target['base_drain'] * $telemetry['ward_absorption']) / 100);
-            $actualDrain = max(4, $target['base_drain'] - $wardAbsorbed);
+            // Wards reduce spectral exposure; an absent anchor adds instability damage.
+            $wardAbsorbed = 0;
+            $actualDrain = $target['base_drain'];
+
+            if ($telemetry['has_ward']) {
+                $wardAbsorbed = (int) round(($target['base_drain'] * $telemetry['ward_absorption']) / 100);
+                $actualDrain = max(4, $target['base_drain'] - $wardAbsorbed);
+            }
+
+            $anchorHeld = $telemetry['has_anchor'];
+            if (! $anchorHeld) {
+                $actualDrain += 15;
+            }
+
+            $equipped = Loadout::with('gear')->where('user_id', $user->id)->get();
+            $scanner = $equipped->first(fn ($loadout) => $loadout->slot === 'scanner'
+                || ($loadout->gear && $loadout->gear->type === 'scanner'));
+            $freqDifference = $scanner ? abs($scanner->frequency_khz - $target['freq']) : 500;
+            $frequencyMatched = $freqDifference <= 120;
+
+            $captured = $telemetry['has_trap']
+                && $frequencyMatched
+                && $telemetry['stability'] >= 40;
+
+            // Both resource pools pay a cost on every attempted encounter.
+            $energyCost = max(1, (int) $telemetry['total_drain'] + $actualDrain);
+            $lifeForceDamage = $anchorHeld
+                ? max(1, (int) ceil($actualDrain * 0.5))
+                : $actualDrain;
+
+            if ($user->energy < $energyCost || $user->life_force < $lifeForceDamage) {
+                $missing = [];
+                if ($user->energy < $energyCost) {
+                    $missing[] = "energy (need {$energyCost}, have {$user->energy})";
+                }
+                if ($user->life_force < $lifeForceDamage) {
+                    $missing[] = "life-force (need {$lifeForceDamage}, have {$user->life_force})";
+                }
+
+                return [
+                    'blocked' => true,
+                    'message' => 'Encounter blocked: insufficient ' . implode(' and ', $missing)
+                        . '. Recover your spectral reserves before hunting again.',
+                ];
+            }
+
+            $user->update([
+                'energy' => $user->energy - $energyCost,
+                'life_force' => $user->life_force - $lifeForceDamage,
+            ]);
+
+            $ectoEarned = $captured ? $target['reward'] : 0;
+            if ($ectoEarned > 0) {
+                $user->increment('ecto', $ectoEarned);
+                $user->refresh();
+            }
+
+            return [
+                'blocked' => false,
+                'captured' => $captured,
+                'entity_name' => $target['name'],
+                'base_drain' => $target['base_drain'],
+                'ward_absorbed' => $wardAbsorbed,
+                'actual_drain' => $actualDrain,
+                'energy_spent' => $energyCost,
+                'life_force_lost' => $lifeForceDamage,
+                'energy_remaining' => (int) $user->energy,
+                'life_force_remaining' => (int) $user->life_force,
+                'anchor_held' => $anchorHeld,
+                'frequency_matched' => $frequencyMatched,
+                'ecto_earned' => $ectoEarned,
+                'user_id' => $user->id,
+            ];
+        });
+
+        if ($outcome['blocked']) {
+            return redirect('/drain')->withErrors(['encounter' => $outcome['message']]);
         }
 
-        $anchorHeld = $telemetry['has_anchor'];
-        $instabilityDamage = 0;
-        if (! $anchorHeld) {
-            $instabilityDamage = 15;
-            $actualDrain += $instabilityDamage;
-        }
+        $user = User::findOrFail($outcome['user_id']);
 
-        // Frequency Resonance Check (closest tuned gear)
-        $equipped = Loadout::with('gear')->where('user_id', $user->id)->get();
-        $scanner = $equipped->first(fn ($l) => $l->slot === 'scanner' || ($l->gear && $l->gear->type === 'scanner'));
-        $freqDifference = $scanner ? abs($scanner->frequency_khz - $target['freq']) : 500;
-        $frequencyMatched = $freqDifference <= 120;
-
-        $hasTrap = $telemetry['has_trap'];
-        $captured = $hasTrap && $frequencyMatched && $telemetry['stability'] >= 40;
-
-        $ectoEarned = 0;
-        if ($captured) {
-            $ectoEarned = $target['reward'];
-            $user->addEcto($ectoEarned);
-
-            // Trigger potential achievements
+        if ($outcome['captured']) {
             AchievementService::checkAndUnlock($user);
 
             notify(
                 $user->id,
                 'Spectral Entity Contained!',
-                "Your custom rig captured a {$target['name']}! Harvested ₱ {$ectoEarned} Ecto.",
+                "Your custom rig captured a {$target['name']}! Harvested ₱ {$outcome['ecto_earned']} Ecto.",
                 '/drain',
                 'zap'
             );
@@ -308,23 +404,15 @@ class LoadoutController extends Controller
             notify(
                 $user->id,
                 'Drain Chamber Exposure',
-                "Encountered {$target['name']}. Suffered {$actualDrain} EP drain. Ward absorbed {$wardAbsorbed} EP.",
+                "Encountered {$target['name']}. Spent {$outcome['energy_spent']} EP and lost {$outcome['life_force_lost']} life-force.",
                 '/drain',
                 'battery-charging'
             );
         }
 
-        $result = [
-            'captured'           => $captured,
-            'entity_name'        => $target['name'],
-            'base_drain'         => $target['base_drain'],
-            'ward_absorbed'      => $wardAbsorbed,
-            'actual_drain'       => $actualDrain,
-            'anchor_held'        => $anchorHeld,
-            'frequency_matched'  => $frequencyMatched,
-            'ecto_earned'        => $ectoEarned,
-        ];
+        unset($outcome['blocked'], $outcome['user_id']);
 
-        return redirect('/drain')->with('simulation_result', $result);
+        return redirect('/drain')->with('simulation_result', $outcome);
     }
+}
 }
