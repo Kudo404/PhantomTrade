@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Gear;
+use App\Models\Loadout;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -31,6 +33,64 @@ class SpectralResourceTest extends TestCase
             'energy' => 63,
             'life_force' => 63,
             'ecto' => 100,
+        ]);
+    }
+
+    public function test_successful_containment_keeps_ecto_rewards_and_persists_resource_costs(): void
+    {
+        $user = User::factory()->create([
+            'role' => User::ROLE_GHOST_HUNTER,
+            'ecto' => 100,
+            'energy' => 100,
+            'life_force' => 100,
+        ]);
+
+        $trap = Gear::create([
+            'name' => 'Test Containment Trap',
+            'type' => 'trap',
+            'description' => 'Feature-test containment unit.',
+            'ecto_cost' => 10,
+            'energy_cost' => 5,
+        ]);
+        $scanner = Gear::create([
+            'name' => 'Test Spectral Scanner',
+            'type' => 'scanner',
+            'description' => 'Feature-test resonance scanner.',
+            'ecto_cost' => 10,
+            'energy_cost' => 5,
+        ]);
+
+        Loadout::create([
+            'user_id' => $user->id,
+            'gear_id' => $trap->id,
+            'slot' => 'trap',
+            'tuning_mode' => 'balanced',
+            'frequency_khz' => 440,
+            'ward_reinforcement' => 0,
+        ]);
+        Loadout::create([
+            'user_id' => $user->id,
+            'gear_id' => $scanner->id,
+            'slot' => 'scanner',
+            'tuning_mode' => 'balanced',
+            'frequency_khz' => 280,
+            'ward_reinforcement' => 0,
+        ]);
+
+        $response = $this->actingAs($user)->post('/drain/execute', [
+            'entity_id' => 'poltergeist',
+        ]);
+
+        $response->assertRedirect('/drain');
+        $response->assertSessionHas('simulation_result', function ($result) {
+            return $result['captured'] === true && $result['ecto_earned'] === 20;
+        });
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'energy' => 53,
+            'life_force' => 63,
+            'ecto' => 120,
         ]);
     }
 
