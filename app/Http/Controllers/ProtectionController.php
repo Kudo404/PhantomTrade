@@ -151,6 +151,37 @@ class ProtectionController extends Controller
         return redirect('/protection')->with('success', 'Battery replaced. This device has up to 24 hours of power.');
     }
 
+    public function recharge(Request $request, $id)
+    {
+        $user = $request->user();
+        $device = ProtectionDevice::where('user_id', $user->id)->findOrFail($id);
+        $cost = 10;
+
+        $recharged = DB::transaction(function () use ($user, $device, $cost) {
+            $lockedUser = \App\Models\User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+            if ((int) $lockedUser->ecto < $cost) {
+                return false;
+            }
+
+            $lockedUser->decrement('ecto', $cost);
+            $device->forceFill([
+                'battery_minutes' => 1440,
+                'activated_at' => now(),
+                'is_active' => true,
+            ])->save();
+
+            return true;
+        });
+
+        if (! $recharged) {
+            return redirect('/protection')->withErrors([
+                'battery' => 'You need 10 Ecto to recharge this device, or you can buy a replacement battery from the Gear Shop.',
+            ]);
+        }
+
+        return redirect('/protection')->with('success', 'Battery recharged for 10 Ecto. This device has up to 24 hours of power.');
+    }
+
     public function deactivate(Request $request, $id)
     {
         $device = ProtectionDevice::where('user_id', $request->user()->id)->findOrFail($id);
