@@ -118,13 +118,21 @@
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2">
+                        @if ($user->ecto >= 10)
+                            <form method="POST" action="/protection/{{ $device->id }}/recharge">
+                                @csrf
+                                <button class="btn btn-secondary text-xs" type="submit">Recharge · 10 Ecto</button>
+                            </form>
+                        @else
+                            <span class="self-center text-xs text-[var(--text-secondary)]">Need 10 Ecto to recharge</span>
+                        @endif
                         @if ($batteries->sum('quantity') > 0)
                             <form method="POST" action="/protection/{{ $device->id }}/battery">
                                 @csrf
-                                <button class="btn btn-secondary text-xs" type="submit">Replace battery</button>
+                                <button class="btn btn-secondary text-xs" type="submit">Use spare battery</button>
                             </form>
                         @else
-                            <a href="/gears" class="btn btn-secondary text-xs">Buy battery</a>
+                            <a href="/gears?type=battery" class="btn btn-secondary text-xs">Buy battery</a>
                         @endif
                         @if ($device->is_active)
                             <form method="POST" action="/protection/{{ $device->id }}/deactivate">
