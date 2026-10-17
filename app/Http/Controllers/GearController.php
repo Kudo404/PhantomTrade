@@ -21,7 +21,7 @@ class GearController extends Controller
         }
 
         $gears = $query->latest()->get();
-        $types = ['trap', 'ward', 'anchor', 'scanner'];
+        $types = ['trap', 'ward', 'anchor', 'scanner', 'battery'];
 
         return view('gears.index', compact('gears', 'types'));
     }
@@ -54,7 +54,7 @@ class GearController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|in:trap,ward,anchor,scanner',
+            'type' => 'required|in:trap,ward,anchor,scanner,battery',
             'description' => 'required|string|max:1000',
             'ecto_cost' => 'required|integer|min:0',
             'energy_cost' => 'required|integer|min:0',
