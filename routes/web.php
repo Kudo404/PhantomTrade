@@ -18,6 +18,7 @@ use App\Http\Controllers\RoleApplicationController;
 use App\Http\Controllers\AchievementController;
 use App\Http\Controllers\LicenseController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\ProtectionController;
 
 
 // ─── Public routes (no auth required) ──────────
@@ -125,8 +126,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/location',          [ProfileController::class, 'saveLocation']);
     Route::get('/profile/license',            [LicenseController::class, 'show']);
 
-    // ─── Map ───────────────────────────────────
+    // ─── Map & deployed spectral protection ─────
     Route::get('/map', [MapController::class, 'index']);
+    Route::get('/protection', [ProtectionController::class, 'index']);
+    Route::post('/protection/deploy', [ProtectionController::class, 'deploy']);
+    Route::post('/protection/{id}/battery', [ProtectionController::class, 'replaceBattery']);
+    Route::post('/protection/{id}/deactivate', [ProtectionController::class, 'deactivate']);
 
     // ─── Field Haunt & Drain Simulator (Scenario 3) ───
     Route::get('/drain',                       [LoadoutController::class, 'drainSim']);
