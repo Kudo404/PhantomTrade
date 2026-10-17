@@ -105,6 +105,39 @@ class ProtectionDeviceTest extends TestCase
         $this->assertDatabaseMissing('protection_devices', ['user_id' => $user->id]);
     }
 
+    public function test_user_can_recharge_a_device_with_ecto(): void
+    {
+        $user = User::factory()->create(['role' => User::ROLE_CIVILIAN, 'ecto' => 20]);
+        $ward = Gear::create([
+            'name' => 'Rechargeable Ward',
+            'type' => 'ward',
+            'description' => 'Ward that can be recharged.',
+            'ecto_cost' => 20,
+            'energy_cost' => 3,
+        ]);
+        $device = ProtectionDevice::create([
+            'user_id' => $user->id,
+            'gear_id' => $ward->id,
+            'label' => 'Home',
+            'latitude' => 14.5995,
+            'longitude' => 120.9842,
+            'radius_meters' => 100,
+            'battery_minutes' => 1440,
+            'activated_at' => now()->subHours(30),
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($user)->post('/protection/' . $device->id . '/recharge');
+
+        $response->assertRedirect('/protection');
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'ecto' => 10]);
+        $this->assertDatabaseHas('protection_devices', [
+            'id' => $device->id,
+            'battery_minutes' => 1440,
+            'is_active' => 1,
+        ]);
+    }
+
     public function test_owned_battery_recharges_only_the_users_device(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-10-17 09:00:00'));
