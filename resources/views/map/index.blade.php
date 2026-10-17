@@ -216,6 +216,30 @@
             filter: drop-shadow(0 6px 12px rgba(15, 23, 42, 0.35));
         }
 
+        /* Animated field-radar effects for deployed equipment */
+        .radar-marker { background: transparent !important; border: 0 !important; }
+        .radar-marker__core { position: relative; width: 42px; height: 42px; display: grid; place-items: center; color: var(--radar-color, #06b6d4); }
+        .radar-marker__core::before, .radar-marker__core::after, .radar-marker__ring {
+            content: ""; position: absolute; inset: 5px; border: 1.5px solid currentColor; border-radius: 50%;
+            pointer-events: none;
+        }
+        .radar-marker__ring { animation: radarBreath 3s ease-out infinite; }
+        .radar-marker__ring--two { animation-delay: 1s; }
+        .radar-marker__ring--three { animation-delay: 2s; }
+        .radar-marker__core::before { inset: 11px; background: color-mix(in srgb, currentColor 20%, transparent); box-shadow: 0 0 12px currentColor, inset 0 0 8px currentColor; }
+        .radar-marker__core::after { inset: 16px; background: #e6fdff; border: 2px solid currentColor; box-shadow: 0 0 12px currentColor; }
+        .radar-marker__sweep { position: absolute; inset: 1px; border-radius: 50%; overflow: hidden; opacity: .75; }
+        .radar-marker__sweep::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0deg 275deg, color-mix(in srgb, currentColor 45%, transparent) 330deg, transparent 360deg); animation: radarSweep 4s linear infinite; }
+        .radar-marker--offline { filter: grayscale(.8); opacity: .72; }
+        .radar-radius { animation: radiusPulse 3.2s ease-in-out infinite; }
+        @keyframes radarBreath { 0% { transform: scale(.35); opacity: .9; } 75%,100% { transform: scale(2.4); opacity: 0; } }
+        @keyframes radarSweep { to { transform: rotate(360deg); } }
+        @keyframes radiusPulse { 0%,100% { fill-opacity: .06; } 50% { fill-opacity: .15; } }
+        @media (prefers-reduced-motion: reduce) {
+            .radar-marker__ring, .radar-marker__sweep::before, .radar-radius { animation: none !important; }
+            .radar-marker__ring { opacity: .25; transform: scale(1.7); }
+        }
+
         /* Popup styling */
         .leaflet-popup-content-wrapper {
             background: #ffffff;
@@ -428,33 +452,66 @@
             });
 
 
-            // Deployed equipment is rendered on this same Haunt Map.
+            // Deployed equipment: live-radius rings + animated radar beacon.
             const equipmentMarkers = [];
-            const equipmentColors = { ward: '#2563eb', anchor: '#7c3aed', trap: '#dc2626', scanner: '#0891b2' };
+            const equipmentRadii = [];
+            const equipmentColors = { ward: '#22d3ee', anchor: '#a78bfa', trap: '#fb7185', scanner: '#38bdf8' };
+
+            function makeRadarIcon(color, powered) {
+                const offlineClass = powered ? '' : ' radar-marker--offline';
+                return L.divIcon({
+                    className: 'radar-marker' + offlineClass,
+                    html: '<div class="radar-marker__core" style="--radar-color:' + color + '">' +
+                        (powered ? '<span class="radar-marker__sweep"></span>' : '') +
+                        (powered ? '<span class="radar-marker__ring"></span><span class="radar-marker__ring radar-marker__ring--two"></span><span class="radar-marker__ring radar-marker__ring--three"></span>' : '') +
+                        '</div>',
+                    iconSize: [42, 42],
+                    iconAnchor: [21, 21],
+                    popupAnchor: [0, -19]
+                });
+            }
+
             equipmentPins.forEach(function (device) {
                 const lat = parseFloat(device.lat);
                 const lng = parseFloat(device.lng);
-                if (isNaN(lat) || isNaN(lng)) return;
-                const color = equipmentColors[device.type] || '#64748b';
-                const marker = L.marker([lat, lng], { icon: makeIcon(color) }).addTo(map);
+                const radius = Math.max(0, parseFloat(device.radius) || 0);
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+                const color = equipmentColors[device.type] || '#38bdf8';
+                const marker = L.marker([lat, lng], {
+                    icon: makeRadarIcon(color, !!device.powered),
+                    zIndexOffset: 800
+                }).addTo(map);
+
                 const circle = L.circle([lat, lng], {
-                    radius: device.radius,
+                    radius: radius,
+                    className: device.powered ? 'radar-radius' : '',
                     color: device.powered ? color : '#64748b',
                     fillColor: device.powered ? color : '#64748b',
-                    fillOpacity: device.powered ? 0.12 : 0.04,
-                    weight: 2,
-                    dashArray: device.powered ? null : '5 6'
+                    fillOpacity: device.powered ? 0.09 : 0.035,
+                    opacity: device.powered ? 0.8 : 0.45,
+                    weight: device.powered ? 2 : 1,
+                    dashArray: device.powered ? '7 7' : '4 7',
+                    interactive: false
                 }).addTo(map);
+
                 marker.bindPopup(
-                    '<div style="min-width:190px;font-family:sans-serif;">' +
-                    '<strong>' + escapeHtml(device.name) + '</strong><br>' +
-                    '<span style="font-size:12px;color:#64748b;">' + escapeHtml(device.type) + ' · deployed by ' + escapeHtml(device.owner) + '</span><br>' +
-                    '<span style="font-size:12px;">' + (device.powered ? 'Active · battery ' + device.battery + '%' : 'Inactive / out of battery') + '</span><br>' +
-                    '<span style="font-size:12px;">Radius: ' + device.radius + ' m</span>' +
-                    '</div>'
+                    '<div style="min-width:205px;font-family:Inter,-apple-system,sans-serif;color:#e5f7ff;background:#071827;padding:3px;">' +
+                    '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;">' +
+                    '<strong style="font-size:14px;color:#f0fbff;">' + escapeHtml(device.name) + '</strong>' +
+                    '<span style="font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:' + (device.powered ? '#34d399' : '#94a3b8') + ';">' + (device.powered ? '● ACTIVE' : '○ OFFLINE') + '</span></div>' +
+                    '<div style="font-size:12px;color:#8baabd;margin-bottom:9px;">' + escapeHtml(device.type) + ' · deployed by ' + escapeHtml(device.owner) + '</div>' +
+                    '<div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:8px;"><span style="color:#67e8f9;">Battery</span><strong>' + device.battery + '%</strong></div>' +
+                    '<div style="height:5px;border-radius:99px;background:#173449;overflow:hidden;margin-bottom:10px;"><div style="height:100%;width:' + Math.max(0, Math.min(100, Number(device.battery) || 0)) + '%;background:linear-gradient(90deg,#0891b2,#2dd4bf);border-radius:99px;"></div></div>' +
+                    '<div style="border-top:1px solid #1b3a4d;padding-top:8px;font-size:12px;color:#b7d4e2;">⌁ Detection radius <strong style="color:#67e8f9;">' + radius + ' m</strong></div>' +
+                    '</div>',
+                    { className: 'radar-popup', closeButton: true }
                 );
-                marker.searchName = device.name.toLowerCase();
+
+                marker.searchName = String(device.name).toLowerCase();
+                marker.deviceType = device.type;
                 equipmentMarkers.push(marker);
+                equipmentRadii.push(circle);
                 allCoords.push([lat, lng]);
             });
 
