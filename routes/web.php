@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
     // ─── Gear Shop ─────────────────────────────
     Route::get('/gears',                       [GearController::class, 'index']);
     Route::get('/gears/{id}',                  [GearController::class, 'show']);
+    Route::get('/gears/{id}/checkout',          [GearController::class, 'checkout']);
     Route::post('/gears/{id}/buy',             [GearController::class, 'buy']);
 
     // ─── Inventory ─────────────────────────────
