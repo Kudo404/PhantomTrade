@@ -42,7 +42,19 @@ class ProtectionController extends Controller
                 return $device;
             });
 
-        return view('protection.index', compact('user', 'owned', 'batteries', 'devices'));
+        // Prepare plain map data here instead of embedding a nested arrow function
+        // inside Blade's @json directive (which can fail to compile on some Laravel versions).
+        $mapDevices = $devices->map(fn ($d) => [
+            'name' => $d->label ?: $d->gear->name,
+            'type' => $d->gear->type,
+            'lat' => (float) $d->latitude,
+            'lng' => (float) $d->longitude,
+            'radius' => (int) $d->radius_meters,
+            'powered' => (bool) $d->powered,
+            'battery' => (int) $d->battery_percent,
+        ])->values();
+
+        return view('protection.index', compact('user', 'owned', 'batteries', 'devices', 'mapDevices'));
     }
 
     public function deploy(Request $request)
