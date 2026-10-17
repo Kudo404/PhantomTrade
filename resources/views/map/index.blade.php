@@ -76,6 +76,43 @@
         </div>
     </section>
 
+    {{-- MY DEPLOYED EQUIPMENT CONTROLS --}}
+    <section class="mb-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]" aria-labelledby="my-equipment-heading">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] p-5 md:p-6">
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--surface-soft)] text-[var(--accent)]"><i data-lucide="radio-tower" class="h-5 w-5"></i></div>
+                <div><h2 id="my-equipment-heading" class="text-lg font-bold text-[var(--text)]">My Deployed Equipment</h2><p class="mt-1 text-sm text-[var(--text-secondary)]">Monitor and manage devices you deployed.</p></div>
+            </div>
+            <span class="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-semibold text-[var(--text-secondary)]">{{ $myDevices->count() }} device(s)</span>
+        </div>
+        <div class="p-4 md:p-5">
+            @if ($myDevices->isEmpty())
+                <div class="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-soft)] p-5 text-sm text-[var(--text-secondary)]">You have no deployed equipment yet. Deploy a device above and it will appear here.</div>
+            @else
+                <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                    @foreach ($myDevices as $device)
+                        @php($powered = $device->isPowered())
+                        @php($battery = $device->batteryPercent())
+                        <article class="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div class="min-w-0"><h3 class="truncate font-bold text-[var(--text)]">{{ $device->label ?: $device->gear->name }}</h3><p class="mt-1 text-xs capitalize text-[var(--text-secondary)]">{{ str_replace('_', ' ', $device->gear->type) }} · {{ $device->radius_meters }} m radius</p></div>
+                                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide {{ $powered ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600' }}"><span class="h-1.5 w-1.5 rounded-full {{ $powered ? 'bg-emerald-500' : 'bg-slate-400' }}"></span>{{ $powered ? 'Online' : 'Offline' }}</span>
+                            </div>
+                            <div class="mt-4"><div class="mb-1.5 flex justify-between text-xs"><span class="text-[var(--text-secondary)]">Battery</span><strong class="text-[var(--text)]">{{ $battery }}%</strong></div><div class="h-1.5 overflow-hidden rounded-full bg-[var(--surface-soft)]"><div class="h-full rounded-full {{ $battery > 25 ? 'bg-emerald-500' : 'bg-amber-500' }}" style="width: {{ $battery }}%"></div></div></div>
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                @if ($powered)
+                                    <form method="POST" action="/protection/{{ $device->id }}/deactivate">@csrf<button type="submit" class="btn inline-flex items-center gap-1.5 text-xs"><i data-lucide="power" class="h-3.5 w-3.5"></i> Switch off</button></form>
+                                @endif
+                                <form method="POST" action="/protection/{{ $device->id }}/recharge" onsubmit="return confirm('Recharge this device for 10 Ecto and power it on?')">@csrf<button type="submit" class="btn inline-flex items-center gap-1.5 text-xs"><i data-lucide="zap" class="h-3.5 w-3.5"></i> Recharge · 10 Ecto</button></form>
+                                <form method="POST" action="/protection/{{ $device->id }}/battery" onsubmit="return confirm('Use one battery item to replace this device’s power cell?')">@csrf<button type="submit" class="btn inline-flex items-center gap-1.5 text-xs"><i data-lucide="battery-charging" class="h-3.5 w-3.5"></i> Replace battery</button></form>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </section>
+
     {{-- TACTICAL RADAR STATUS --}}
     <section class="radar-console mb-4 grid grid-cols-2 gap-3 rounded-2xl p-4 sm:grid-cols-4" aria-label="Radar status">
         <div class="radar-console__heading col-span-2 flex items-center justify-between sm:col-span-4">
