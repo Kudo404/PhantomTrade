@@ -40,7 +40,7 @@
 
                 @if ($gear->image_path)
                     <img
-                        src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($gear->image_path) }}"
+                        src="{{ asset('storage/' . ltrim($gear->image_path, '/')) }}"
                         alt="{{ $gear->name }}"
                         class="w-full h-full object-contain"
                         onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
