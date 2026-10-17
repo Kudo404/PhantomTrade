@@ -21,7 +21,7 @@
         <h2 style="font-size:17px;font-weight:650;color:var(--text);margin:0 0 16px;">Order summary</h2>
         <div style="display:flex;gap:16px;align-items:center;">
             @if ($gear->image_path)
-                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($gear->image_path) }}" alt="{{ $gear->name }}" style="width:104px;height:104px;object-fit:cover;border-radius:12px;border:1px solid var(--border);">
+                <img src="{{ asset('storage/' . ltrim($gear->image_path, '/')) }}" alt="{{ $gear->name }}" style="width:104px;height:104px;object-fit:cover;border-radius:12px;border:1px solid var(--border);">
             @else
                 <div style="width:104px;height:104px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--bg);font-size:32px;">
                     @switch($gear->type)
