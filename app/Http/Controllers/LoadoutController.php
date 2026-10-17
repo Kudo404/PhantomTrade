@@ -65,11 +65,21 @@ class LoadoutController extends Controller
 
         $equippedGearIds = $equipped->pluck('gear_id')->toArray();
 
-        // Owned gear available to equip
+        // Only show tactical slots for gear the player actually owns or has equipped.
         $myItems = Inventory::with('gear')
             ->where('user_id', $userId)
             ->where('quantity', '>', 0)
             ->get();
+
+        $availableTypes = $myItems
+            ->map(fn ($item) => $item->gear ? $item->gear->type : null)
+            ->filter()
+            ->merge($equipped->map(fn ($item) => $item->gear ? $item->gear->type : $item->slot))
+            ->unique()
+            ->values()
+            ->all();
+
+        $slots = array_intersect_key($slots, array_flip($availableTypes));
 
         // Live Telemetry from User Model
         $telemetry = $user->spectralRigSummary();
@@ -333,8 +343,9 @@ class LoadoutController extends Controller
                 && $frequencyMatched
                 && $telemetry['stability'] >= 40;
 
-            // Both resource pools pay a cost on every attempted encounter.
-            $energyCost = max(1, (int) $telemetry['total_drain'] + $actualDrain);
+            // Keep the cost easy to explain: gear energy + the encounter's listed energy cost.
+            // Wards and anchors reduce life-force damage, not the energy price shown on the encounter.
+            $energyCost = max(1, (int) $telemetry['total_drain'] + (int) $target['base_drain']);
             $lifeForceDamage = $anchorHeld
                 ? max(1, (int) ceil($actualDrain * 0.5))
                 : $actualDrain;
