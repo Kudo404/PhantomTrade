@@ -81,7 +81,7 @@
                                 <div style="display:flex; align-items:center; gap:12px; min-width:240px;">
                                     @if ($gear->image_path)
                                         <img
-                                            src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($gear->image_path) }}"
+                                            src="{{ asset('storage/' . ltrim($gear->image_path, '/')) }}"
                                             alt="{{ $gear->name }}"
                                             loading="lazy"
                                             style="width:76px; height:76px; flex-shrink:0; object-fit:cover; border-radius:10px; border:1px solid var(--border); background:var(--bg);"
