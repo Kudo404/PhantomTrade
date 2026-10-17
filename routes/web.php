@@ -131,6 +131,7 @@ Route::middleware('auth')->group(function () {
     // ─── Field Haunt & Drain Simulator (Scenario 3) ───
     Route::get('/drain',                       [LoadoutController::class, 'drainSim']);
     Route::post('/drain/execute',              [LoadoutController::class, 'executeDrain']);
+    Route::post('/drain/recover',               [LoadoutController::class, 'recoverResources']);
 
     // ─── Role Applications ─────────────────────
     Route::get('/apply/merchant',  [RoleApplicationController::class, 'showMerchantForm']);
