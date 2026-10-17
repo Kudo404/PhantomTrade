@@ -35,7 +35,7 @@ class GearController extends Controller
 
     public function create()
     {
-        $types = ['trap', 'ward', 'anchor', 'scanner'];
+        $types = ['trap', 'ward', 'anchor', 'scanner', 'battery'];
 
         return view('gears.create', compact('types'));
     }
@@ -43,7 +43,7 @@ class GearController extends Controller
     public function edit($id)
     {
         $gear = Gear::findOrFail($id);
-        $types = ['trap', 'ward', 'anchor', 'scanner'];
+        $types = ['trap', 'ward', 'anchor', 'scanner', 'battery'];
 
         return view('gears.edit', compact('gear', 'types'));
     }
@@ -155,7 +155,7 @@ class GearController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|in:trap,ward,anchor,scanner',
+            'type' => 'required|in:trap,ward,anchor,scanner,battery',
             'description' => 'required|string|max:1000',
             'ecto_cost' => 'required|integer|min:0',
             'energy_cost' => 'required|integer|min:0',
