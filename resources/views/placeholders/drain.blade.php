@@ -54,87 +54,34 @@
                 @endif
             </div>
 
-            {{-- Metric Breakdown Strip --}}
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-[var(--border-subtle)] text-[12px]">
+            <div class="mt-4 grid grid-cols-1 gap-3 border-t border-[var(--border-subtle)] pt-4 text-[12px] sm:grid-cols-3">
                 <div>
-                    <span class="text-[var(--text-muted)] block text-[10.5px]">Base Spectral Drain</span>
-                    <span class="font-bold text-[var(--text)]">{{ $res['base_drain'] }} EP</span>
-                </div>
-                <div>
-                    <span class="text-[var(--text-muted)] block text-[10.5px]">Spirit Ward Absorption</span>
-                    <span class="font-bold text-[#059669]">-{{ $res['ward_absorbed'] }} EP Dissipated</span>
-                </div>
-                <div>
-                    <span class="text-[var(--text-muted)] block text-[10.5px]">Soul-Anchor Grounding</span>
-                    <span class="font-bold {{ $res['anchor_held'] ? 'text-[#6366f1]' : 'text-[#e11d48]' }}">
-                        {{ $res['anchor_held'] ? '✅ Tether Grounded' : '❌ Tether Destabilized (+15 Drain)' }}
-                    </span>
-                </div>
-                <div>
-                    <span class="text-[var(--text-muted)] block text-[10.5px]">Frequency Resonance</span>
-                    <span class="font-bold {{ $res['frequency_matched'] ? 'text-[#9333ea]' : 'text-[var(--text-muted)]' }}">
-                        {{ $res['frequency_matched'] ? '✅ Resonance Locked' : '❌ Frequency Mismatch' }}
-                    </span>
-                </div>
-                <div>
-                    <span class="text-[var(--text-muted)] block text-[10.5px]">Energy Consumed</span>
+                    <span class="block text-[var(--text-muted)]">Energy used</span>
                     <span class="font-bold text-[#d97706]">-{{ $res['energy_spent'] }} EP</span>
                 </div>
                 <div>
-                    <span class="text-[var(--text-muted)] block text-[10.5px]">Life-Force Lost</span>
+                    <span class="block text-[var(--text-muted)]">Life-force lost</span>
                     <span class="font-bold text-[#8b5cf6]">-{{ $res['life_force_lost'] }} LP</span>
+                </div>
+                <div>
+                    <span class="block text-[var(--text-muted)]">Ecto earned</span>
+                    <span class="font-bold text-[#059669]">{{ $res['captured'] ? '+' . $res['ecto_earned'] : '0' }} Ecto</span>
                 </div>
             </div>
         </div>
     @endif
 
-    {{-- ═══ ACTIVE RIG TELEMETRY PREVIEW ══════════════ --}}
-    <div class="p-5 border border-[var(--border)] rounded-[var(--radius)] bg-[var(--surface)] mb-8 shadow-sm">
-        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center">
-                    <i data-lucide="shield" class="w-4 h-4"></i>
-                </div>
-                <div>
-                    <h3 class="text-[14px] font-bold text-[var(--text)]">Active Rig Diagnostic</h3>
-                    <p class="text-[11.5px] text-[var(--text-secondary)]">Telemetry values loaded from your equipped gear and tuning profiles.</p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <span class="text-[12px] text-[var(--text-secondary)]">Equipped Slots:</span>
-                <span class="px-2 py-0.5 rounded bg-[var(--bg)] border border-[var(--border-subtle)] font-bold text-[12px] text-[var(--text)]">
-                    {{ $telemetry['equipped_count'] }} / 4
-                </span>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
-            <div class="p-3 rounded-lg bg-[var(--bg)] border border-[var(--border-subtle)]">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1">Ward Barrier</span>
-                <span class="text-[18px] font-bold text-[#059669]">{{ $telemetry['ward_absorption'] }}%</span>
-                <span class="text-[11px] text-[var(--text-secondary)] block mt-0.5">{{ $telemetry['has_ward'] ? 'Shield Online' : 'No Ward' }}</span>
-            </div>
-
-            <div class="p-3 rounded-lg bg-[var(--bg)] border border-[var(--border-subtle)]">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1">Soul Stability</span>
-                <span class="text-[18px] font-bold {{ $telemetry['stability'] < 50 ? 'text-[#e11d48]' : 'text-[#6366f1]' }}">{{ $telemetry['stability'] }}%</span>
-                <span class="text-[11px] text-[var(--text-secondary)] block mt-0.5">{{ $telemetry['has_anchor'] ? 'Anchor Active' : 'Unanchored' }}</span>
-            </div>
-
-            <div class="p-3 rounded-lg bg-[var(--bg)] border border-[var(--border-subtle)]">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1">Rig Drain Rate</span>
-                <span class="text-[18px] font-bold text-[#f59e0b]">{{ $telemetry['total_drain'] }} EP</span>
-                <span class="text-[11px] text-[var(--text-secondary)] block mt-0.5">Energy / Hunt</span>
-            </div>
-
-            <div class="p-3 rounded-lg bg-[var(--bg)] border border-[var(--border-subtle)]">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1">Containment Trap</span>
-                <span class="text-[18px] font-bold {{ $telemetry['has_trap'] ? 'text-[var(--text)]' : 'text-[var(--text-muted)]' }}">
-                    {{ $telemetry['has_trap'] ? 'Armored Trap' : 'None' }}
-                </span>
-                <span class="text-[11px] text-[var(--text-secondary)] block mt-0.5">{{ $telemetry['has_trap'] ? 'Capture Ready' : 'Trap Required' }}</span>
-            </div>
+    {{-- ═══ SIMPLE HUNT SUMMARY ═══════════════════════ --}}
+    <div class="mb-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+        <h3 class="mb-1 text-[14px] font-bold text-[var(--text)]">Before you hunt</h3>
+        <p class="text-[12px] leading-relaxed text-[var(--text-secondary)]">
+            Each hunt uses <strong>your equipped gear's energy</strong> plus the energy cost shown on the spirit card.
+            Your <strong>life-force</strong> is also reduced by the encounter. Wards reduce life-force damage, and an anchor reduces it further.
+            You only earn Ecto when your trap, scanner, and rig are ready to contain the spirit.
+        </p>
+        <div class="mt-3 flex flex-wrap gap-2 text-[11px]">
+            <span class="rounded-full bg-[var(--bg)] px-3 py-1 text-[var(--text-secondary)]">{{ $telemetry['equipped_count'] }} gear item(s) equipped</span>
+            <span class="rounded-full bg-[var(--bg)] px-3 py-1 text-[var(--text-secondary)]">{{ $telemetry['total_drain'] }} EP gear cost per hunt</span>
         </div>
     </div>
 
@@ -202,6 +149,18 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
         @foreach ($entities as $ent)
+            @php
+                $estimatedEnergy = (int) $telemetry['total_drain'] + (int) $ent['base_drain'];
+                $estimatedExposure = (int) $ent['base_drain'];
+                if ($telemetry['has_ward']) {
+                    $estimatedExposure = max(4, $estimatedExposure - (int) round(($ent['base_drain'] * $telemetry['ward_absorption']) / 100));
+                }
+                if (! $telemetry['has_anchor']) {
+                    $estimatedExposure += 15;
+                }
+                $estimatedLifeForce = $telemetry['has_anchor'] ? max(1, (int) ceil($estimatedExposure * 0.5)) : $estimatedExposure;
+                $canAffordHunt = $user->energy >= $estimatedEnergy && $user->life_force >= $estimatedLifeForce;
+            @endphp
             <div class="border border-[var(--border)] rounded-[var(--radius)] bg-[var(--surface)] p-5 flex flex-col justify-between hover:shadow-lg transition-all relative overflow-hidden group">
 
                 <div>
@@ -225,18 +184,17 @@
                         {{ $ent['desc'] }}
                     </p>
 
-                    <div class="space-y-1.5 pt-3 border-t border-[var(--border-subtle)] text-[12px] mb-5">
-                        <div class="flex justify-between">
-                            <span class="text-[var(--text-muted)]">Resonance Freq:</span>
-                            <span class="font-bold text-[#9333ea]">{{ $ent['freq'] }} kHz</span>
+                    <div class="space-y-2 border-t border-[var(--border-subtle)] pt-3 mb-5 text-[12px]">
+                        <div class="flex justify-between gap-3">
+                            <span class="text-[var(--text-muted)]">Energy needed</span>
+                            <span class="font-bold text-[#d97706]">{{ $estimatedEnergy }} EP</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-[var(--text-muted)]">Base Drain:</span>
-                            <span class="font-bold text-[#e11d48]">{{ $ent['base_drain'] }} EP</span>
+                        <div class="flex justify-between gap-3">
+                            <span class="text-[var(--text-muted)]">Possible reward</span>
+                            <span class="font-bold text-[#059669]">{{ $ent['ecto_reward'] }} Ecto</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-[var(--text-muted)]">Ecto Reward:</span>
-                            <span class="font-bold text-[#059669]">₱ {{ $ent['ecto_reward'] }} Ecto</span>
+                        <div class="text-[11px] text-[var(--text-secondary)]">
+                            Expected life-force loss: about {{ $estimatedLifeForce }} LP
                         </div>
                     </div>
                 </div>
@@ -245,10 +203,13 @@
                 <form action="/drain/execute" method="POST">
                     @csrf
                     <input type="hidden" name="entity_id" value="{{ $ent['id'] }}">
-                    <button type="submit" class="btn w-full text-[12.5px] py-2 flex items-center justify-center gap-2 {{ $ent['danger'] === 'Extreme' ? 'bg-[#e11d48] hover:bg-[#be123c]' : '' }}" {{ ($user->energy <= 0 || $user->life_force <= 0) ? 'disabled' : '' }}>
-                        <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-                        <span>{{ ($user->energy <= 0 || $user->life_force <= 0) ? 'Recharge Required' : 'Engage Chamber' }}</span>
+                    <button type="submit" class="btn w-full text-[12.5px] py-2 flex items-center justify-center gap-2 {{ $ent['danger'] === 'Extreme' ? 'bg-[#e11d48] hover:bg-[#be123c]' : '' }}" {{ ! $canAffordHunt ? 'disabled' : '' }}>
+                        <i data-lucide="{{ $canAffordHunt ? 'zap' : 'battery-warning' }}" class="w-3.5 h-3.5"></i>
+                        <span>{{ $canAffordHunt ? 'Start Hunt' : 'Recharge to Hunt' }}</span>
                     </button>
+                    @if (! $canAffordHunt)
+                        <p class="mt-2 text-center text-[11px] text-[var(--text-secondary)]">You need more energy or life-force for this hunt.</p>
+                    @endif
                 </form>
 
             </div>
