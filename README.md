@@ -10,7 +10,7 @@ PhantomTrade is a Laravel-powered supernatural gear marketplace and spectral fie
 - **Spectral encounters:** test a configured rig against Poltergeists, Banshees, Shadow Fiends, and Ancient Wraiths.
 - **Persistent resources:** each encounter consumes stored rig energy and life-force. A ward reduces exposure; a soul-anchor reduces life-force damage.
 - **Recovery:** spend 10 Ecto to restore energy and life-force to 100. Encounters are rejected atomically when either resource cannot cover its cost.
-- **Spectral Protection Map:** users deploy owned devices at map-selected coordinates. Civilians can deploy Spirit Wards to protect a chosen location; hunting equipment remains restricted to hunters. Devices show a circular coverage radius and use a time-based 24-hour battery. Replacement batteries are purchasable from the Gear Shop and consumed when installed.
+- **Spectral Protection Map:** users deploy owned devices at map-selected coordinates. Civilians can deploy Spirit Wards to protect a chosen location; hunting equipment remains restricted to hunters. Devices show a circular coverage radius and use a time-based 24-hour battery. Users can recharge for 10 Ecto or buy a replacement battery from the Gear Shop and consume it when installed.
 - **Admin tools:** manage gear and other administrative functions.
 
 ## Local setup
