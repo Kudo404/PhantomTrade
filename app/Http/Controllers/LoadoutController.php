@@ -415,4 +415,3 @@ class LoadoutController extends Controller
         return redirect('/drain')->with('simulation_result', $outcome);
     }
 }
-}
