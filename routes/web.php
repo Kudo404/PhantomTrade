@@ -70,11 +70,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/inventory',                   [InventoryController::class, 'index']);
 
     // ─── Loadout & Spectral Gear Customizer ────
-    Route::get('/loadout',                     [LoadoutController::class, 'index']);
-    Route::post('/loadout/{gearId}/equip',     [LoadoutController::class, 'equip']);
-    Route::post('/loadout/{gearId}/tune',      [LoadoutController::class, 'tune']);
-    Route::post('/loadout/{gearId}/unequip',   [LoadoutController::class, 'unequip']);
-    Route::post('/loadout/reset',              [LoadoutController::class, 'resetAll']);
+    Route::get('/loadout',                     [LoadoutController::class, 'index'])->middleware('role:ghost_hunter');
+    Route::post('/loadout/{gearId}/equip',     [LoadoutController::class, 'equip'])->middleware('role:ghost_hunter');
+    Route::post('/loadout/{gearId}/tune',      [LoadoutController::class, 'tune'])->middleware('role:ghost_hunter');
+    Route::post('/loadout/{gearId}/unequip',   [LoadoutController::class, 'unequip'])->middleware('role:ghost_hunter');
+    Route::post('/loadout/reset',              [LoadoutController::class, 'resetAll'])->middleware('role:ghost_hunter');
 
     // ─── Marketplace ───────────────────────────
     Route::get('/marketplace',                 [MarketplaceController::class, 'index']);
@@ -134,9 +134,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/protection/{id}/deactivate', [ProtectionController::class, 'deactivate']);
 
     // ─── Field Haunt & Drain Simulator (Scenario 3) ───
-    Route::get('/drain',                       [LoadoutController::class, 'drainSim']);
-    Route::post('/drain/execute',              [LoadoutController::class, 'executeDrain']);
-    Route::post('/drain/recover',               [LoadoutController::class, 'recoverResources']);
+    Route::get('/drain',                       [LoadoutController::class, 'drainSim'])->middleware('role:ghost_hunter');
+    Route::post('/drain/execute',              [LoadoutController::class, 'executeDrain'])->middleware('role:ghost_hunter');
+    Route::post('/drain/recover',               [LoadoutController::class, 'recoverResources'])->middleware('role:ghost_hunter');
 
     // ─── Role Applications ─────────────────────
     Route::get('/apply/merchant',  [RoleApplicationController::class, 'showMerchantForm']);
