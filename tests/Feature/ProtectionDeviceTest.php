@@ -49,6 +49,17 @@ class ProtectionDeviceTest extends TestCase
         ]);
     }
 
+    public function test_civilian_cannot_access_hunter_loadout_or_drain_chamber(): void
+    {
+        $user = User::factory()->create(['role' => User::ROLE_CIVILIAN]);
+
+        $this->actingAs($user)->get('/loadout')->assertForbidden();
+        $this->actingAs($user)->get('/drain')->assertForbidden();
+        $this->actingAs($user)->post('/drain/execute', [
+            'entity_id' => 'poltergeist',
+        ])->assertForbidden();
+    }
+
     public function test_civilian_cannot_deploy_hunting_equipment(): void
     {
         $user = User::factory()->create(['role' => User::ROLE_CIVILIAN]);
