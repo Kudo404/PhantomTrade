@@ -17,6 +17,7 @@ class MapController extends Controller
         $wantedPins = $wantedPosts->map(fn ($w) => ['id'=>$w->id,'gear_name'=>$w->gear->name,'quantity'=>$w->quantity,'price_per_unit'=>$w->price_per_unit,'poster_name'=>$w->user->name,'poster_role'=>$w->user->roleLabel(),'poster_role_key'=>$w->user->role,'note'=>$w->note,'lat'=>(float)$w->user->latitude,'lng'=>(float)$w->user->longitude,'url'=>'/marketplace'])->values();
         $owned = Inventory::with('gear')->where('user_id', auth()->id())->where('quantity','>',0)->whereHas('gear', fn ($q) => $q->whereIn('type',['ward','anchor','trap','scanner']))->get();
         $equipmentPins = ProtectionDevice::with(['gear','user'])->latest()->get()->map(fn ($d) => ['id'=>$d->id,'name'=>$d->label ?: $d->gear->name,'type'=>$d->gear->type,'owner'=>$d->user->name,'lat'=>(float)$d->latitude,'lng'=>(float)$d->longitude,'radius'=>(int)$d->radius_meters,'powered'=>(bool)$d->isPowered(),'battery'=>(int)$d->batteryPercent()])->values();
-        return view('map.index', compact('userPins','wantedPins','owned','equipmentPins'));
+        $myDevices = ProtectionDevice::with('gear')->where('user_id', auth()->id())->latest()->get();
+        return view('map.index', compact('userPins','wantedPins','owned','equipmentPins','myDevices'));
     }
 }
