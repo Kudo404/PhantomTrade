@@ -152,9 +152,7 @@
                     </div>
                 </div>
 
-                <form method="POST" action="/gears/{{ $gear->id }}/buy">
-                    @csrf
-
+                <form method="GET" action="/gears/{{ $gear->id }}/checkout">
                     <button type="submit"
                             class="btn w-full flex items-center justify-center gap-2">
                         <i data-lucide="shopping-cart" class="w-4 h-4"></i>
