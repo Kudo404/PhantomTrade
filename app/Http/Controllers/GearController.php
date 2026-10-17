@@ -40,6 +40,14 @@ class GearController extends Controller
         return view('gears.create', compact('types'));
     }
 
+    public function checkout($id)
+    {
+        $gear = Gear::findOrFail($id);
+        $user = auth()->user();
+
+        return view('gears.checkout', compact('gear', 'user'));
+    }
+
     public function buy($id)
     {
         $userId = auth()->id();
