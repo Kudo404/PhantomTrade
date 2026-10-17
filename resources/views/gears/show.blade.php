@@ -1,4 +1,3 @@
-```blade
 @extends('layouts.app')
 
 @section('title', $gear->name . ' — Phantom Trade')
@@ -170,4 +169,3 @@
 </div>
 
 @endsection
-```
