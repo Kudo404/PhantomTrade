@@ -28,41 +28,64 @@
         <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{{ $errors->first() }}</div>
     @endif
 
-    <section class="mb-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div>
-                <h2 class="font-semibold text-[var(--text)]">Deploy equipment on the Haunt Map</h2>
-                <p class="text-sm text-[var(--text-secondary)]">Select equipment you own, then click the existing map to choose where to deploy it. Deployment does not grant hunting access.</p>
+    {{-- FIELD EQUIPMENT / DEPLOYMENT --}}
+    <section class="field-panel mb-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+        <div class="field-panel__header flex flex-wrap items-center justify-between gap-4 p-5 md:p-6">
+            <div class="flex items-start gap-3">
+                <div class="field-panel__icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"><i data-lucide="radio-tower" class="h-6 w-6"></i></div>
+                <div>
+                    <p class="mb-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Field operations</p>
+                    <h2 class="text-lg font-bold tracking-tight text-[var(--text)] md:text-xl">Deploy equipment</h2>
+                    <p class="mt-1 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">Choose a device, click anywhere on the Haunt Map to set its position, then deploy. Everything stays on this map.</p>
+                </div>
             </div>
-            <a href="/gears" class="btn">Browse Gear Shop</a>
+            <a href="/gears" class="btn inline-flex items-center gap-2"><i data-lucide="shopping-bag" class="h-4 w-4"></i> Gear Shop <i data-lucide="arrow-up-right" class="h-3.5 w-3.5"></i></a>
         </div>
-        @if ($owned->isEmpty())
-            <p class="rounded-lg border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-secondary)]">You have no deployable equipment in your inventory yet. Buy a ward, anchor, trap, or scanner from the Gear Shop first.</p>
-        @else
-            <form method="POST" action="/protection/deploy" id="deployForm" class="grid grid-cols-1 gap-3 md:grid-cols-4">
-                @csrf
-                <div>
-                    <label for="gear_id" class="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">Equipment</label>
-                    <select id="gear_id" name="gear_id" required class="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2.5 text-sm text-[var(--text)]">
-                        <option value="">Choose owned equipment...</option>
-                        @foreach ($owned as $item)
-                            <option value="{{ $item->gear->id }}">{{ $item->gear->name }} ({{ $item->quantity }} owned)</option>
-                        @endforeach
-                    </select>
+        <div class="border-t border-[var(--border)] p-5 md:p-6">
+            @if ($owned->isEmpty())
+                <div class="flex flex-col gap-4 rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-soft)] p-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="package-open" class="mt-0.5 h-5 w-5 shrink-0 text-[var(--text-muted)]"></i>
+                        <div><p class="font-semibold text-[var(--text)]">No deployable gear in your inventory</p><p class="mt-1 text-sm text-[var(--text-secondary)]">Pick up a ward, anchor, trap, or scanner from the Gear Shop and it will appear here.</p></div>
+                    </div>
+                    <a href="/gears" class="btn shrink-0">Browse equipment</a>
                 </div>
-                <div>
-                    <label for="label" class="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">Label (optional)</label>
-                    <input id="label" name="label" maxlength="80" placeholder="e.g. North entrance" class="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2.5 text-sm text-[var(--text)]">
-                </div>
-                <input type="hidden" id="latitude" name="latitude" required>
-                <input type="hidden" id="longitude" name="longitude" required>
-                <div id="pickedCoordinates" class="self-end rounded-lg bg-[var(--surface-soft)] p-2.5 text-xs text-[var(--text-secondary)]">Click the map to choose a location.</div>
-                <div class="flex items-end">
-                    <button type="submit" class="btn w-full">Deploy on map</button>
-                </div>
-            </form>
-        @endif
-        <p class="mt-3 text-xs text-[var(--text-secondary)]">Civilians, merchants, and other non-hunter users may deploy owned equipment, but hunting remains restricted to Ghost Hunters by the existing hunt routes.</p>
+            @else
+                <form method="POST" action="/protection/deploy" id="deployForm" class="grid grid-cols-1 items-end gap-4 lg:grid-cols-[minmax(190px,1fr)_minmax(180px,1fr)_minmax(180px,1fr)_auto]">
+                    @csrf
+                    <div class="min-w-0">
+                        <label for="gear_id" class="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--text-secondary)]"><i data-lucide="cpu" class="h-3.5 w-3.5"></i> Equipment</label>
+                        <select id="gear_id" name="gear_id" required class="field-control w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-sm text-[var(--text)]">
+                            <option value="">Choose owned equipment...</option>
+                            @foreach ($owned as $item)
+                                <option value="{{ $item->gear->id }}">{{ $item->gear->name }} · {{ $item->quantity }} owned</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="min-w-0">
+                        <label for="label" class="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--text-secondary)]"><i data-lucide="map-pin" class="h-3.5 w-3.5"></i> Placement label <span class="font-normal normal-case tracking-normal">(optional)</span></label>
+                        <input id="label" name="label" maxlength="80" placeholder="e.g. North entrance" class="field-control w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-sm text-[var(--text)]">
+                    </div>
+                    <input type="hidden" id="latitude" name="latitude" required>
+                    <input type="hidden" id="longitude" name="longitude" required>
+                    <div id="pickedCoordinates" class="coordinate-status rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-soft)] p-3 text-xs leading-5 text-[var(--text-secondary)]"><span class="mb-1 flex items-center gap-1.5 font-bold uppercase tracking-wide"><i data-lucide="crosshair" class="h-3.5 w-3.5"></i> Location pending</span>Click the map below to choose a deployment point.</div>
+                    <button type="submit" class="btn inline-flex min-h-[46px] items-center justify-center gap-2 whitespace-nowrap rounded-xl px-5"><i data-lucide="send" class="h-4 w-4"></i> Deploy device</button>
+                </form>
+            @endif
+            <div class="mt-5 flex items-start gap-2 rounded-lg bg-[var(--surface-soft)] px-3 py-2.5 text-xs leading-5 text-[var(--text-secondary)]"><i data-lucide="info" class="mt-0.5 h-4 w-4 shrink-0"></i><p>All signed-in roles can deploy equipment they own. Deploying devices does not unlock hunting; hunting permissions remain unchanged.</p></div>
+        </div>
+    </section>
+
+    {{-- TACTICAL RADAR STATUS --}}
+    <section class="radar-console mb-4 grid grid-cols-2 gap-3 rounded-2xl p-4 sm:grid-cols-4" aria-label="Radar status">
+        <div class="radar-console__heading col-span-2 flex items-center justify-between sm:col-span-4">
+            <div class="flex items-center gap-2"><span class="radar-live-dot"></span><span class="text-[11px] font-bold uppercase tracking-[.18em]">Field sensor network</span></div>
+            <span class="text-[10px] uppercase tracking-widest opacity-60">PHANTOM // LIVE MAP</span>
+        </div>
+        <div class="radar-stat"><span>Mapped users</span><strong id="radarUserCount">—</strong></div>
+        <div class="radar-stat"><span>Wanted listings</span><strong id="radarWantedCount">—</strong></div>
+        <div class="radar-stat"><span>Deployed devices</span><strong id="radarDeviceCount">—</strong></div>
+        <div class="radar-stat"><span>Powered sensors</span><strong id="radarActiveCount">—</strong></div>
     </section>
 
     {{-- FILTER CHIPS --}}
@@ -148,6 +171,14 @@
 
     {{-- MAP STYLES --}}
     <style>
+        .field-panel { box-shadow: 0 12px 32px rgba(15, 23, 42, 0.055); }
+        .field-panel__header { background: linear-gradient(115deg, var(--surface) 0%, var(--surface-soft) 100%); }
+        .field-panel__icon { color: var(--accent); background: color-mix(in srgb, var(--accent) 11%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); }
+        .field-panel .field-control { min-height: 46px; outline: none; transition: border-color .15s ease, box-shadow .15s ease; }
+        .field-panel .field-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+        .coordinate-status { min-height: 46px; }
+        .field-panel button[type="submit"] { box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 18%, transparent); }
+        @media (max-width: 767px) { #map { height: 520px; } .field-panel__header { align-items: flex-start; } #deployForm button[type="submit"] { width: 100%; } }
         .map-filter {
             display: inline-flex;
             align-items: center;
@@ -195,6 +226,39 @@
         }
         .custom-marker:hover svg {
             filter: drop-shadow(0 6px 12px rgba(15, 23, 42, 0.35));
+        }
+
+        .radar-console { color: #d7f7ff; background: radial-gradient(ellipse at 8% 0%, rgba(8,145,178,.18), transparent 48%), linear-gradient(125deg,#071521,#0b1e2b 60%,#0a1723); border: 1px solid rgba(34,211,238,.22); box-shadow: inset 0 1px rgba(255,255,255,.035), 0 10px 28px rgba(2,8,23,.12); }
+        .radar-console__heading { color: #67e8f9; padding-bottom: 3px; }
+        .radar-live-dot { width: 7px; height: 7px; display: inline-block; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 4px rgba(52,211,153,.12), 0 0 12px #34d399; animation: radarLive 1.8s ease-in-out infinite; }
+        .radar-stat { min-width: 0; padding: 12px; border-radius: 11px; background: rgba(148,211,231,.055); border: 1px solid rgba(148,211,231,.1); }
+        .radar-stat span { display:block; color:#8baabd; font-size:10px; text-transform:uppercase; letter-spacing:.09em; line-height:1.5; }
+        .radar-stat strong { display:block; margin-top:5px; color:#e6fbff; font-size:25px; font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; }
+        @keyframes radarLive { 50% { opacity:.45; box-shadow:0 0 0 7px rgba(52,211,153,.04),0 0 5px #34d399; } }
+        @media (prefers-reduced-motion: reduce) { .radar-live-dot { animation:none; } }
+
+        /* Animated field-radar effects for deployed equipment */
+        .radar-marker { background: transparent !important; border: 0 !important; }
+        .radar-marker__core { position: relative; width: 42px; height: 42px; display: grid; place-items: center; color: var(--radar-color, #06b6d4); }
+        .radar-marker__core::before, .radar-marker__core::after, .radar-marker__ring {
+            content: ""; position: absolute; inset: 5px; border: 1.5px solid currentColor; border-radius: 50%;
+            pointer-events: none;
+        }
+        .radar-marker__ring { animation: radarBreath 3s ease-out infinite; }
+        .radar-marker__ring--two { animation-delay: 1s; }
+        .radar-marker__ring--three { animation-delay: 2s; }
+        .radar-marker__core::before { inset: 11px; background: color-mix(in srgb, currentColor 20%, transparent); box-shadow: 0 0 12px currentColor, inset 0 0 8px currentColor; }
+        .radar-marker__core::after { inset: 16px; background: #e6fdff; border: 2px solid currentColor; box-shadow: 0 0 12px currentColor; }
+        .radar-marker__sweep { position: absolute; inset: 1px; border-radius: 50%; overflow: hidden; opacity: .75; }
+        .radar-marker__sweep::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0deg 275deg, color-mix(in srgb, currentColor 45%, transparent) 330deg, transparent 360deg); animation: radarSweep 4s linear infinite; }
+        .radar-marker--offline { filter: grayscale(.8); opacity: .72; }
+        .radar-radius { animation: radiusPulse 3.2s ease-in-out infinite; }
+        @keyframes radarBreath { 0% { transform: scale(.35); opacity: .9; } 75%,100% { transform: scale(2.4); opacity: 0; } }
+        @keyframes radarSweep { to { transform: rotate(360deg); } }
+        @keyframes radiusPulse { 0%,100% { fill-opacity: .06; } 50% { fill-opacity: .15; } }
+        @media (prefers-reduced-motion: reduce) {
+            .radar-marker__ring, .radar-marker__sweep::before, .radar-radius { animation: none !important; }
+            .radar-marker__ring { opacity: .25; transform: scale(1.7); }
         }
 
         /* Popup styling */
@@ -409,35 +473,78 @@
             });
 
 
-            // Deployed equipment is rendered on this same Haunt Map.
+            // Deployed equipment: live-radius rings + animated radar beacon.
             const equipmentMarkers = [];
-            const equipmentColors = { ward: '#2563eb', anchor: '#7c3aed', trap: '#dc2626', scanner: '#0891b2' };
+            const equipmentRadii = [];
+            const equipmentColors = { ward: '#22d3ee', anchor: '#a78bfa', trap: '#fb7185', scanner: '#38bdf8' };
+
+            function makeRadarIcon(color, powered) {
+                const offlineClass = powered ? '' : ' radar-marker--offline';
+                return L.divIcon({
+                    className: 'radar-marker' + offlineClass,
+                    html: '<div class="radar-marker__core" style="--radar-color:' + color + '">' +
+                        (powered ? '<span class="radar-marker__sweep"></span>' : '') +
+                        (powered ? '<span class="radar-marker__ring"></span><span class="radar-marker__ring radar-marker__ring--two"></span><span class="radar-marker__ring radar-marker__ring--three"></span>' : '') +
+                        '</div>',
+                    iconSize: [42, 42],
+                    iconAnchor: [21, 21],
+                    popupAnchor: [0, -19]
+                });
+            }
+
             equipmentPins.forEach(function (device) {
                 const lat = parseFloat(device.lat);
                 const lng = parseFloat(device.lng);
-                if (isNaN(lat) || isNaN(lng)) return;
-                const color = equipmentColors[device.type] || '#64748b';
-                const marker = L.marker([lat, lng], { icon: makeIcon(color) }).addTo(map);
+                const radius = Math.max(0, parseFloat(device.radius) || 0);
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+                const color = equipmentColors[device.type] || '#38bdf8';
+                const marker = L.marker([lat, lng], {
+                    icon: makeRadarIcon(color, !!device.powered),
+                    zIndexOffset: 800
+                }).addTo(map);
+
                 const circle = L.circle([lat, lng], {
-                    radius: device.radius,
+                    radius: radius,
+                    className: device.powered ? 'radar-radius' : '',
                     color: device.powered ? color : '#64748b',
                     fillColor: device.powered ? color : '#64748b',
-                    fillOpacity: device.powered ? 0.12 : 0.04,
-                    weight: 2,
-                    dashArray: device.powered ? null : '5 6'
+                    fillOpacity: device.powered ? 0.09 : 0.035,
+                    opacity: device.powered ? 0.8 : 0.45,
+                    weight: device.powered ? 2 : 1,
+                    dashArray: device.powered ? '7 7' : '4 7',
+                    interactive: false
                 }).addTo(map);
+
                 marker.bindPopup(
-                    '<div style="min-width:190px;font-family:sans-serif;">' +
-                    '<strong>' + escapeHtml(device.name) + '</strong><br>' +
-                    '<span style="font-size:12px;color:#64748b;">' + escapeHtml(device.type) + ' · deployed by ' + escapeHtml(device.owner) + '</span><br>' +
-                    '<span style="font-size:12px;">' + (device.powered ? 'Active · battery ' + device.battery + '%' : 'Inactive / out of battery') + '</span><br>' +
-                    '<span style="font-size:12px;">Radius: ' + device.radius + ' m</span>' +
-                    '</div>'
+                    '<div style="min-width:205px;font-family:Inter,-apple-system,sans-serif;color:#e5f7ff;background:#071827;padding:3px;">' +
+                    '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;">' +
+                    '<strong style="font-size:14px;color:#f0fbff;">' + escapeHtml(device.name) + '</strong>' +
+                    '<span style="font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:' + (device.powered ? '#34d399' : '#94a3b8') + ';">' + (device.powered ? '● ACTIVE' : '○ OFFLINE') + '</span></div>' +
+                    '<div style="font-size:12px;color:#8baabd;margin-bottom:9px;">' + escapeHtml(device.type) + ' · deployed by ' + escapeHtml(device.owner) + '</div>' +
+                    '<div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:8px;"><span style="color:#67e8f9;">Battery</span><strong>' + device.battery + '%</strong></div>' +
+                    '<div style="height:5px;border-radius:99px;background:#173449;overflow:hidden;margin-bottom:10px;"><div style="height:100%;width:' + Math.max(0, Math.min(100, Number(device.battery) || 0)) + '%;background:linear-gradient(90deg,#0891b2,#2dd4bf);border-radius:99px;"></div></div>' +
+                    '<div style="border-top:1px solid #1b3a4d;padding-top:8px;font-size:12px;color:#b7d4e2;">⌁ Detection radius <strong style="color:#67e8f9;">' + radius + ' m</strong></div>' +
+                    '</div>',
+                    { className: 'radar-popup', closeButton: true }
                 );
-                marker.searchName = device.name.toLowerCase();
+
+                marker.searchName = String(device.name).toLowerCase();
+                marker.deviceType = device.type;
                 equipmentMarkers.push(marker);
+                equipmentRadii.push(circle);
                 allCoords.push([lat, lng]);
             });
+
+            // Populate the HUD from the map data already loaded by Laravel.
+            const setHudCount = function (id, value) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = String(value);
+            };
+            setHudCount('radarUserCount', userPins.length);
+            setHudCount('radarWantedCount', wantedPins.length);
+            setHudCount('radarDeviceCount', equipmentPins.length);
+            setHudCount('radarActiveCount', equipmentPins.filter(function (device) { return !!device.powered; }).length);
 
             function escapeHtml(value) {
                 return String(value).replace(/[&<>"']/g, function (character) {
