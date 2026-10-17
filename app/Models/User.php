@@ -16,12 +16,18 @@ class User extends Authenticatable
     const ROLE_MERCHANT     = 'merchant';
     const ROLE_ADMIN        = 'admin';
 
+    public const MAX_ENERGY = 100;
+    public const MAX_LIFE_FORCE = 100;
+    public const RECOVERY_ECTO_COST = 10;
+
     protected $fillable = [
         'name',
         'email',
         'password',
         'role',
         'ecto',
+        'energy',
+        'life_force',
         'latitude',
         'longitude',
         'location_name',
@@ -43,6 +49,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'license_issued_at' => 'datetime',
+        'energy' => 'integer',
+        'life_force' => 'integer',
     ];
 
     // ── Role helpers ───────────────────────────
