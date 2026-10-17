@@ -58,6 +58,30 @@ class SpectralResourceTest extends TestCase
         ]);
     }
 
+    public function test_encounter_is_blocked_when_life_force_cannot_cover_the_exposure(): void
+    {
+        $user = User::factory()->create([
+            'role' => User::ROLE_GHOST_HUNTER,
+            'ecto' => 100,
+            'energy' => 100,
+            'life_force' => 10,
+        ]);
+
+        $response = $this->actingAs($user)->post('/drain/execute', [
+            'entity_id' => 'poltergeist',
+        ]);
+
+        $response->assertRedirect('/drain');
+        $response->assertSessionHasErrors('encounter');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'energy' => 100,
+            'life_force' => 10,
+            'ecto' => 100,
+        ]);
+    }
+
     public function test_recovery_spends_ecto_and_restores_both_reserves(): void
     {
         $user = User::factory()->create([
