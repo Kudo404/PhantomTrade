@@ -28,41 +28,52 @@
         <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{{ $errors->first() }}</div>
     @endif
 
-    <section class="mb-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div>
-                <h2 class="font-semibold text-[var(--text)]">Deploy equipment on the Haunt Map</h2>
-                <p class="text-sm text-[var(--text-secondary)]">Select equipment you own, then click the existing map to choose where to deploy it. Deployment does not grant hunting access.</p>
+    {{-- FIELD EQUIPMENT / DEPLOYMENT --}}
+    <section class="field-panel mb-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+        <div class="field-panel__header flex flex-wrap items-center justify-between gap-4 p-5 md:p-6">
+            <div class="flex items-start gap-3">
+                <div class="field-panel__icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"><i data-lucide="radio-tower" class="h-6 w-6"></i></div>
+                <div>
+                    <p class="mb-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Field operations</p>
+                    <h2 class="text-lg font-bold tracking-tight text-[var(--text)] md:text-xl">Deploy equipment</h2>
+                    <p class="mt-1 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">Choose a device, click anywhere on the Haunt Map to set its position, then deploy. Everything stays on this map.</p>
+                </div>
             </div>
-            <a href="/gears" class="btn">Browse Gear Shop</a>
+            <a href="/gears" class="btn inline-flex items-center gap-2"><i data-lucide="shopping-bag" class="h-4 w-4"></i> Gear Shop <i data-lucide="arrow-up-right" class="h-3.5 w-3.5"></i></a>
         </div>
-        @if ($owned->isEmpty())
-            <p class="rounded-lg border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-secondary)]">You have no deployable equipment in your inventory yet. Buy a ward, anchor, trap, or scanner from the Gear Shop first.</p>
-        @else
-            <form method="POST" action="/protection/deploy" id="deployForm" class="grid grid-cols-1 gap-3 md:grid-cols-4">
-                @csrf
-                <div>
-                    <label for="gear_id" class="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">Equipment</label>
-                    <select id="gear_id" name="gear_id" required class="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2.5 text-sm text-[var(--text)]">
-                        <option value="">Choose owned equipment...</option>
-                        @foreach ($owned as $item)
-                            <option value="{{ $item->gear->id }}">{{ $item->gear->name }} ({{ $item->quantity }} owned)</option>
-                        @endforeach
-                    </select>
+        <div class="border-t border-[var(--border)] p-5 md:p-6">
+            @if ($owned->isEmpty())
+                <div class="flex flex-col gap-4 rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-soft)] p-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="package-open" class="mt-0.5 h-5 w-5 shrink-0 text-[var(--text-muted)]"></i>
+                        <div><p class="font-semibold text-[var(--text)]">No deployable gear in your inventory</p><p class="mt-1 text-sm text-[var(--text-secondary)]">Pick up a ward, anchor, trap, or scanner from the Gear Shop and it will appear here.</p></div>
+                    </div>
+                    <a href="/gears" class="btn shrink-0">Browse equipment</a>
                 </div>
-                <div>
-                    <label for="label" class="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">Label (optional)</label>
-                    <input id="label" name="label" maxlength="80" placeholder="e.g. North entrance" class="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2.5 text-sm text-[var(--text)]">
-                </div>
-                <input type="hidden" id="latitude" name="latitude" required>
-                <input type="hidden" id="longitude" name="longitude" required>
-                <div id="pickedCoordinates" class="self-end rounded-lg bg-[var(--surface-soft)] p-2.5 text-xs text-[var(--text-secondary)]">Click the map to choose a location.</div>
-                <div class="flex items-end">
-                    <button type="submit" class="btn w-full">Deploy on map</button>
-                </div>
-            </form>
-        @endif
-        <p class="mt-3 text-xs text-[var(--text-secondary)]">Civilians, merchants, and other non-hunter users may deploy owned equipment, but hunting remains restricted to Ghost Hunters by the existing hunt routes.</p>
+            @else
+                <form method="POST" action="/protection/deploy" id="deployForm" class="grid grid-cols-1 items-end gap-4 lg:grid-cols-[minmax(190px,1fr)_minmax(180px,1fr)_minmax(180px,1fr)_auto]">
+                    @csrf
+                    <div class="min-w-0">
+                        <label for="gear_id" class="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--text-secondary)]"><i data-lucide="cpu" class="h-3.5 w-3.5"></i> Equipment</label>
+                        <select id="gear_id" name="gear_id" required class="field-control w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-sm text-[var(--text)]">
+                            <option value="">Choose owned equipment...</option>
+                            @foreach ($owned as $item)
+                                <option value="{{ $item->gear->id }}">{{ $item->gear->name }} · {{ $item->quantity }} owned</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="min-w-0">
+                        <label for="label" class="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--text-secondary)]"><i data-lucide="map-pin" class="h-3.5 w-3.5"></i> Placement label <span class="font-normal normal-case tracking-normal">(optional)</span></label>
+                        <input id="label" name="label" maxlength="80" placeholder="e.g. North entrance" class="field-control w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-sm text-[var(--text)]">
+                    </div>
+                    <input type="hidden" id="latitude" name="latitude" required>
+                    <input type="hidden" id="longitude" name="longitude" required>
+                    <div id="pickedCoordinates" class="coordinate-status rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-soft)] p-3 text-xs leading-5 text-[var(--text-secondary)]"><span class="mb-1 flex items-center gap-1.5 font-bold uppercase tracking-wide"><i data-lucide="crosshair" class="h-3.5 w-3.5"></i> Location pending</span>Click the map below to choose a deployment point.</div>
+                    <button type="submit" class="btn inline-flex min-h-[46px] items-center justify-center gap-2 whitespace-nowrap rounded-xl px-5"><i data-lucide="send" class="h-4 w-4"></i> Deploy device</button>
+                </form>
+            @endif
+            <div class="mt-5 flex items-start gap-2 rounded-lg bg-[var(--surface-soft)] px-3 py-2.5 text-xs leading-5 text-[var(--text-secondary)]"><i data-lucide="info" class="mt-0.5 h-4 w-4 shrink-0"></i><p>All signed-in roles can deploy equipment they own. Deploying devices does not unlock hunting; hunting permissions remain unchanged.</p></div>
+        </div>
     </section>
 
     {{-- FILTER CHIPS --}}
@@ -148,6 +159,14 @@
 
     {{-- MAP STYLES --}}
     <style>
+        .field-panel { box-shadow: 0 12px 32px rgba(15, 23, 42, 0.055); }
+        .field-panel__header { background: linear-gradient(115deg, var(--surface) 0%, var(--surface-soft) 100%); }
+        .field-panel__icon { color: var(--accent); background: color-mix(in srgb, var(--accent) 11%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); }
+        .field-panel .field-control { min-height: 46px; outline: none; transition: border-color .15s ease, box-shadow .15s ease; }
+        .field-panel .field-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+        .coordinate-status { min-height: 46px; }
+        .field-panel button[type="submit"] { box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 18%, transparent); }
+        @media (max-width: 767px) { #map { height: 520px; } .field-panel__header { align-items: flex-start; } #deployForm button[type="submit"] { width: 100%; } }
         .map-filter {
             display: inline-flex;
             align-items: center;
