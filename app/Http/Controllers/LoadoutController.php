@@ -274,7 +274,7 @@ class LoadoutController extends Controller
                 return ['status' => 'insufficient_ecto'];
             }
 
-            $user->decrement('ecto', User::RECOVERY_ECTO_COST);
+            $user->spendEcto(User::RECOVERY_ECTO_COST);
             $user->update([
                 'energy' => User::MAX_ENERGY,
                 'life_force' => User::MAX_LIFE_FORCE,
@@ -373,7 +373,7 @@ class LoadoutController extends Controller
 
             $ectoEarned = $captured ? $target['reward'] : 0;
             if ($ectoEarned > 0) {
-                $user->increment('ecto', $ectoEarned);
+                $user->addEcto($ectoEarned);
                 $user->refresh();
             }
 

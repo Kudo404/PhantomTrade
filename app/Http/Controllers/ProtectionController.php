@@ -125,7 +125,7 @@ class ProtectionController extends Controller
                 return false;
             }
 
-            $lockedUser->decrement('ecto', $cost);
+            $lockedUser->spendEcto($cost);
             $device->forceFill([
                 'battery_minutes' => 1440,
                 'activated_at' => now(),

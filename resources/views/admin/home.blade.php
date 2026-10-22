@@ -12,6 +12,9 @@
         <p class="text-[13.5px] text-[var(--text-secondary)]">
             Overview of the entire Phantom Trade system.
         </p>
+        <a href="/admin/top-ups" class="inline-flex items-center gap-2 mt-3 rounded-lg border border-[var(--border)] px-4 py-2 text-sm no-underline">
+            <i data-lucide="wallet" class="w-4 h-4"></i> Review demo top-up requests
+        </a>
     </div>
 
     {{-- ═══ ALERT: Pending Applications ═══ --}}
