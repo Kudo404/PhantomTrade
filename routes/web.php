@@ -19,6 +19,7 @@ use App\Http\Controllers\AchievementController;
 use App\Http\Controllers\LicenseController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProtectionController;
+use App\Http\Controllers\WalletController;
 
 Route::get('/', [HomeController::class, 'index']);
 
@@ -28,6 +29,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/gears/{id}/edit', [GearController::class, 'edit']);
     Route::put('/gears/{id}', [GearController::class, 'update']);
     Route::get('/admin', [AdminController::class, 'home']);
+    Route::get('/admin/top-ups', [WalletController::class, 'adminIndex']);
+    Route::post('/admin/top-ups/{id}/approve', [WalletController::class, 'approve']);
+    Route::post('/admin/top-ups/{id}/reject', [WalletController::class, 'reject']);
     Route::get('/admin/settings', [AdminController::class, 'settings']);
     Route::post('/admin/settings', [AdminController::class, 'updateSettings']);
     Route::post('/admin/achievements/{id}/toggle', [AdminController::class, 'toggleAchievement']);
@@ -88,6 +92,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
     Route::post('/notifications/clear', [NotificationController::class, 'clearAll']);
     Route::get('/purchases', [PurchaseController::class, 'index']);
+    Route::get('/wallet', [WalletController::class, 'index']);
+    Route::post('/wallet', [WalletController::class, 'store']);
     Route::get('/profile', [ProfileController::class, 'index']);
     Route::get('/profile/location', [ProfileController::class, 'locationForm']);
     Route::post('/profile/location', [ProfileController::class, 'saveLocation']);
