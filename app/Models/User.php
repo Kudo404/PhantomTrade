@@ -171,6 +171,16 @@ class User extends Authenticatable
         return $this->hasMany(Inventory::class);
     }
 
+    public function topUpRequests()
+    {
+        return $this->hasMany(TopUpRequest::class);
+    }
+
+    public function walletTransactions()
+    {
+        return $this->hasMany(WalletTransaction::class);
+    }
+
     public function tradeProposals()
     {
         return $this->hasMany(TradeProposal::class, 'buyer_id');
