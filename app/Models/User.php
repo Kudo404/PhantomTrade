@@ -71,8 +71,50 @@ class User extends Authenticatable
 
     // ── Ecto helpers ───────────────────────────
     public function canAfford(int $amount): bool { return $this->ecto >= $amount; }
-    public function addEcto(int $amount): void   { $this->increment('ecto', $amount); }
-    public function spendEcto(int $amount): void { $this->decrement('ecto', $amount); }
+
+    public function addEcto(int $amount): void
+    {
+        $this->recordEctoChange($amount, 'credit', 'gameplay_credit');
+    }
+
+    public function spendEcto(int $amount): void
+    {
+        $this->recordEctoChange($amount, 'debit', 'gameplay_debit');
+    }
+
+    private function recordEctoChange(int $amount, string $direction, string $type): void
+    {
+        if ($amount < 0) {
+            throw new \\InvalidArgumentException('Ecto change amount cannot be negative.');
+        }
+
+        if ($amount === 0) {
+            return;
+        }
+
+        $before = (int) $this->ecto;
+        if ($direction === 'debit' && $before < $amount) {
+            throw new \\InvalidArgumentException('Insufficient Ecto balance.');
+        }
+
+        if ($direction === 'credit') {
+            $this->increment('ecto', $amount);
+        } else {
+            $this->decrement('ecto', $amount);
+        }
+
+        $after = $direction === 'credit' ? $before + $amount : $before - $amount;
+
+        WalletTransaction::create([
+            'user_id' => $this->id,
+            'type' => $type,
+            'direction' => $direction,
+            'amount' => $amount,
+            'balance_before' => $before,
+            'balance_after' => $after,
+            'description' => $direction === 'credit' ? 'Ecto earned in simulation' : 'Ecto spent in simulation',
+        ]);
+    }
 
     // ── Location helpers ───────────────────────
     public function hasLocation(): bool
