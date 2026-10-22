@@ -91,4 +91,24 @@ class DemoWalletTest extends TestCase
         $this->assertDatabaseCount('top_up_requests', 0);
         $this->assertDatabaseHas('users', ['id' => $user->id, 'ecto' => 100]);
     }
+
+
+    public function test_gameplay_ecto_credits_and_debits_are_recorded_in_ledger(): void
+    {
+        $user = User::factory()->create(['ecto' => 100]);
+
+        $user->spendEcto(25);
+        $user->refresh()->addEcto(10);
+
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'ecto' => 85]);
+        $this->assertDatabaseHas('wallet_transactions', [
+            'user_id' => $user->id, 'type' => 'gameplay_debit', 'direction' => 'debit',
+            'amount' => 25, 'balance_before' => 100, 'balance_after' => 75,
+        ]);
+        $this->assertDatabaseHas('wallet_transactions', [
+            'user_id' => $user->id, 'type' => 'gameplay_credit', 'direction' => 'credit',
+            'amount' => 10, 'balance_before' => 75, 'balance_after' => 85,
+        ]);
+    }
+
 }
