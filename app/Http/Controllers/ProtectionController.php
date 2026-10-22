@@ -58,7 +58,7 @@ class ProtectionController extends Controller
             return ProtectionDevice::create([
                 'user_id' => $user->id,
                 'gear_id' => $gear->id,
-                'label' => $data['label'] ?: $gear->name,
+                'label' => ($data['label'] ?? null) ?: $gear->name,
                 'latitude' => $data['latitude'],
                 'longitude' => $data['longitude'],
                 'radius_meters' => $radius,
