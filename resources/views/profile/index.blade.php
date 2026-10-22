@@ -75,6 +75,7 @@
             ['url' => '/marketplace',              'icon' => 'shopping-bag',     'label' => 'Marketplace'],
             ['url' => '/inventory',                'icon' => 'package',          'label' => 'My Inventory'],
             ['url' => '/purchases',                'icon' => 'receipt',          'label' => 'Purchases'],
+            ['url' => '/wallet',                   'icon' => 'wallet',            'label' => 'Wallet / Demo Top-up'],
             ['url' => '/messages',                 'icon' => 'message-circle',   'label' => 'Messages'],
             ['url' => '/marketplace/my-proposals', 'icon' => 'arrow-left-right', 'label' => 'My Proposals'],
             ['url' => '/marketplace/wanted/mine',  'icon' => 'tag',              'label' => 'My Wanted Ads'],
