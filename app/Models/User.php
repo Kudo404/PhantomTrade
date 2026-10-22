@@ -85,7 +85,7 @@ class User extends Authenticatable
     private function recordEctoChange(int $amount, string $direction, string $type): void
     {
         if ($amount < 0) {
-            throw new \\InvalidArgumentException('Ecto change amount cannot be negative.');
+            throw new Exception('Ecto change amount cannot be negative.');
         }
 
         if ($amount === 0) {
@@ -94,7 +94,7 @@ class User extends Authenticatable
 
         $before = (int) $this->ecto;
         if ($direction === 'debit' && $before < $amount) {
-            throw new \\InvalidArgumentException('Insufficient Ecto balance.');
+            throw new Exception('Insufficient Ecto balance.');
         }
 
         if ($direction === 'credit') {
