@@ -3,82 +3,153 @@
 @section('title', 'My Wallet — Phantom Trade')
 
 @section('content')
-<div class="mb-7">
-    <h1 class="text-[24px] font-semibold text-[var(--text)] mb-1">My Wallet</h1>
-    <p class="text-[13.5px] text-[var(--text-secondary)]">Demo-only Ecto credits. No real payments are processed.</p>
+<div class="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+        <div class="mb-2 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--text-secondary)]">
+            <span class="h-2 w-2 rounded-full bg-[var(--cyan)]"></span>
+            PhantomTrade Economy
+        </div>
+        <h1 class="text-[26px] font-semibold tracking-tight text-[var(--text)]">My Wallet</h1>
+        <p class="mt-1 max-w-2xl text-[13.5px] text-[var(--text-secondary)]">Manage your Ecto balance and track your wallet activity in one place.</p>
+    </div>
+    <span class="inline-flex w-fit items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--text-muted)]">
+        <span class="h-2 w-2 rounded-full bg-[var(--warning)]"></span>
+        Demo mode · No real payments
+    </span>
 </div>
 
 @if (session('success'))
-    <div class="card mb-5 p-4">{{ session('success') }}</div>
+    <div role="status" class="mb-5 flex items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-sm text-[var(--text)] shadow-sm">
+        <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">✓</span>
+        <div>{{ session('success') }}</div>
+    </div>
 @endif
 @if ($errors->any())
-    <div class="card mb-5 p-4 text-red-600">{{ $errors->first() }}</div>
+    <div role="alert" class="mb-5 flex items-start gap-3 rounded-xl border border-[var(--danger)]/30 bg-[var(--danger-bg)] p-4 text-sm text-[var(--danger)]">
+        <span class="font-semibold">!</span>
+        <div>{{ $errors->first() }}</div>
+    </div>
 @endif
 
-<div class="card p-6 mb-6">
-    <div class="text-[11px] uppercase font-semibold tracking-wider text-[var(--text-muted)]">Available Ecto</div>
-    <div class="text-[32px] font-semibold mt-2">{{ number_format($user->ecto) }} <span class="text-sm">Ecto</span></div>
-    <p class="text-sm text-[var(--text-secondary)] mt-2">Request simulated credits below. Your balance changes only after an administrator approves the request.</p>
-</div>
-
-<div class="card p-6 mb-6">
-    <h2 class="text-lg font-semibold mb-3">Request demo top-up</h2>
-    <form method="POST" action="/wallet" class="flex flex-wrap items-end gap-3">
-        @csrf
-        <div class="min-w-[220px]">
-            <label for="amount" class="block text-sm mb-1">Amount (10–10,000 Ecto)</label>
-            <input id="amount" name="amount" type="number" min="10" max="10000" step="1" required value="{{ old('amount', 100) }}" class="w-full rounded border p-2">
+<div class="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-5">
+    <section class="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm lg:col-span-3 sm:p-8">
+        <div class="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-[var(--accent-soft)] opacity-70 blur-3xl"></div>
+        <div class="relative">
+            <div class="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
+                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]">✦</span>
+                Available Ecto
+            </div>
+            <div class="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span class="text-4xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl">{{ number_format($user->ecto) }}</span>
+                <span class="text-base font-medium text-[var(--text-secondary)]">ECTO</span>
+            </div>
+            <p class="mt-4 max-w-lg text-sm leading-6 text-[var(--text-secondary)]">Your balance is ready for eligible PhantomTrade activity. Demo top-ups are added only after an administrator approves your request.</p>
+            <div class="mt-6 flex flex-wrap items-center gap-2 text-xs text-[var(--text-muted)]">
+                <span class="rounded-md border border-[var(--border)] px-2.5 py-1.5">Secure approval flow</span>
+                <span class="rounded-md border border-[var(--border)] px-2.5 py-1.5">Wallet activity ledger</span>
+            </div>
         </div>
-        <button type="submit" class="btn-primary rounded px-4 py-2">Submit demo request</button>
-    </form>
-    <p class="text-xs text-[var(--text-muted)] mt-3">Simulation only — no GCash, bank transfer, or payment gateway is connected.</p>
+    </section>
+
+    <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm lg:col-span-2 sm:p-7">
+        <div class="flex items-start justify-between gap-3">
+            <div>
+                <h2 class="text-base font-semibold text-[var(--text)]">Add demo Ecto</h2>
+                <p class="mt-1 text-sm leading-5 text-[var(--text-secondary)]">Submit a top-up request for admin review.</p>
+            </div>
+            <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-lg text-[var(--accent)]">＋</span>
+        </div>
+        <form method="POST" action="{{ url('/wallet') }}" class="mt-5 space-y-4">
+            @csrf
+            <div>
+                <label for="amount" class="mb-2 block text-sm font-medium text-[var(--text)]">Amount <span class="font-normal text-[var(--text-muted)]">(10–10,000 Ecto)</span></label>
+                <div class="relative">
+                    <input id="amount" name="amount" type="number" min="10" max="10000" step="1" required value="{{ old('amount', 100) }}" class="w-full rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 pr-20 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20">
+                    <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold tracking-wide text-[var(--text-muted)]">ECTO</span>
+                </div>
+                @error('amount')
+                    <p class="mt-2 text-xs text-[var(--danger)]">{{ $message }}</p>
+                @enderror
+            </div>
+            <button type="submit" class="btn-primary inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition">
+                Submit top-up request <span aria-hidden="true">→</span>
+            </button>
+        </form>
+        <p class="mt-4 border-t border-[var(--border)] pt-4 text-xs leading-5 text-[var(--text-muted)]">This is a simulation only. No GCash, bank transfer, or payment gateway is connected.</p>
+    </section>
 </div>
 
-<div class="card p-6 mb-6">
-    <h2 class="text-lg font-semibold mb-3">My top-up requests</h2>
+<section class="mb-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
+    <div class="flex flex-col gap-2 border-b border-[var(--border)] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div>
+            <h2 class="text-base font-semibold text-[var(--text)]">Top-up requests</h2>
+            <p class="mt-1 text-sm text-[var(--text-secondary)]">Follow the review status of your submitted requests.</p>
+        </div>
+        <span class="text-xs text-[var(--text-muted)]">{{ $requests->count() }} {{ \Illuminate\Support\Str::plural('request', $requests->count()) }}</span>
+    </div>
     @if ($requests->isEmpty())
-        <p class="text-sm text-[var(--text-secondary)]">No top-up requests yet.</p>
+        <div class="px-6 py-10 text-center">
+            <div class="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--surface-soft)] text-xl text-[var(--text-muted)]">↗</div>
+            <p class="mt-3 text-sm font-medium text-[var(--text)]">No top-up requests yet</p>
+            <p class="mt-1 text-sm text-[var(--text-secondary)]">Your submitted requests will appear here.</p>
+        </div>
     @else
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead><tr class="text-left border-b"><th class="py-2 pr-3">Date</th><th class="py-2 pr-3">Amount</th><th class="py-2 pr-3">Method</th><th class="py-2 pr-3">Status</th><th class="py-2">Reason</th></tr></thead>
-                <tbody>
+            <table class="w-full min-w-[640px] text-left text-sm">
+                <thead class="bg-[var(--surface-soft)] text-xs uppercase tracking-wide text-[var(--text-muted)]">
+                    <tr><th class="px-5 py-3 font-semibold sm:px-6">Date</th><th class="px-5 py-3 font-semibold">Amount</th><th class="px-5 py-3 font-semibold">Method</th><th class="px-5 py-3 font-semibold">Status</th><th class="px-5 py-3 font-semibold sm:pr-6">Reason</th></tr>
+                </thead>
+                <tbody class="divide-y divide-[var(--border)]">
                 @foreach ($requests as $topUp)
-                    <tr class="border-b">
-                        <td class="py-3 pr-3">{{ $topUp->created_at->format('M d, Y H:i') }}</td>
-                        <td class="py-3 pr-3">{{ number_format($topUp->amount) }} Ecto</td>
-                        <td class="py-3 pr-3">Demo</td>
-                        <td class="py-3 pr-3">{{ ucfirst($topUp->status) }}</td>
-                        <td class="py-3">{{ $topUp->rejection_reason ?: '—' }}</td>
+                    <tr class="transition hover:bg-[var(--surface-hover)]">
+                        <td class="whitespace-nowrap px-5 py-4 text-[var(--text-secondary)] sm:px-6">{{ $topUp->created_at->format('M d, Y H:i') }}</td>
+                        <td class="whitespace-nowrap px-5 py-4 font-semibold text-[var(--text)]">{{ number_format($topUp->amount) }} <span class="text-xs font-normal text-[var(--text-muted)]">Ecto</span></td>
+                        <td class="px-5 py-4 text-[var(--text-secondary)]">Demo</td>
+                        <td class="px-5 py-4">
+                            <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold
+                                {{ $topUp->status === 'approved' ? 'bg-[var(--success)]/10 text-[var(--success)]' : ($topUp->status === 'rejected' ? 'bg-[var(--danger-bg)] text-[var(--danger)]' : 'bg-[var(--warning)]/10 text-[var(--warning)]') }}">
+                                {{ ucfirst($topUp->status) }}
+                            </span>
+                        </td>
+                        <td class="max-w-xs px-5 py-4 text-[var(--text-secondary)] sm:pr-6">{{ $topUp->rejection_reason ?: '—' }}</td>
                     </tr>
                 @endforeach
                 </tbody>
             </table>
         </div>
     @endif
-</div>
+</section>
 
-<div class="card p-6">
-    <h2 class="text-lg font-semibold mb-3">Transaction ledger</h2>
+<section class="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
+    <div class="border-b border-[var(--border)] px-5 py-5 sm:px-6">
+        <h2 class="text-base font-semibold text-[var(--text)]">Transaction ledger</h2>
+        <p class="mt-1 text-sm text-[var(--text-secondary)]">A record of wallet transactions captured by the ledger.</p>
+    </div>
     @if ($transactions->isEmpty())
-        <p class="text-sm text-[var(--text-secondary)]">No wallet transactions recorded yet. Existing purchases are not backfilled into this ledger.</p>
+        <div class="px-6 py-10 text-center">
+            <div class="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--surface-soft)] text-xl text-[var(--text-muted)]">≋</div>
+            <p class="mt-3 text-sm font-medium text-[var(--text)]">No wallet transactions recorded</p>
+            <p class="mt-1 text-sm text-[var(--text-secondary)]">Existing purchases are not backfilled into this ledger.</p>
+        </div>
     @else
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead><tr class="text-left border-b"><th class="py-2 pr-3">Date</th><th class="py-2 pr-3">Type</th><th class="py-2 pr-3">Amount</th><th class="py-2 pr-3">Balance after</th><th class="py-2">Details</th></tr></thead>
-                <tbody>
+            <table class="w-full min-w-[680px] text-left text-sm">
+                <thead class="bg-[var(--surface-soft)] text-xs uppercase tracking-wide text-[var(--text-muted)]">
+                    <tr><th class="px-5 py-3 font-semibold sm:px-6">Date</th><th class="px-5 py-3 font-semibold">Type</th><th class="px-5 py-3 font-semibold">Amount</th><th class="px-5 py-3 font-semibold">Balance after</th><th class="px-5 py-3 font-semibold sm:pr-6">Details</th></tr>
+                </thead>
+                <tbody class="divide-y divide-[var(--border)]">
                 @foreach ($transactions as $transaction)
-                    <tr class="border-b">
-                        <td class="py-3 pr-3">{{ $transaction->created_at->format('M d, Y H:i') }}</td>
-                        <td class="py-3 pr-3">{{ str_replace('_', ' ', ucfirst($transaction->type)) }}</td>
-                        <td class="py-3 pr-3">{{ $transaction->direction === 'credit' ? '+' : '−' }}{{ number_format($transaction->amount) }} Ecto</td>
-                        <td class="py-3 pr-3">{{ number_format($transaction->balance_after) }}</td>
-                        <td class="py-3">{{ $transaction->description ?: '—' }}</td>
+                    <tr class="transition hover:bg-[var(--surface-hover)]">
+                        <td class="whitespace-nowrap px-5 py-4 text-[var(--text-secondary)] sm:px-6">{{ $transaction->created_at->format('M d, Y H:i') }}</td>
+                        <td class="px-5 py-4 text-[var(--text)]">{{ str_replace('_', ' ', ucfirst($transaction->type)) }}</td>
+                        <td class="whitespace-nowrap px-5 py-4 font-semibold {{ $transaction->direction === 'credit' ? 'text-[var(--success)]' : 'text-[var(--danger)]' }}">{{ $transaction->direction === 'credit' ? '+' : '−' }}{{ number_format($transaction->amount) }} <span class="text-xs font-normal text-[var(--text-muted)]">Ecto</span></td>
+                        <td class="whitespace-nowrap px-5 py-4 text-[var(--text)]">{{ number_format($transaction->balance_after) }}</td>
+                        <td class="px-5 py-4 text-[var(--text-secondary)] sm:pr-6">{{ $transaction->description ?: '—' }}</td>
                     </tr>
                 @endforeach
                 </tbody>
             </table>
         </div>
     @endif
-</div>
+</section>
 @endsection
