@@ -883,6 +883,9 @@
                     <a href="/admin/applications" class="sidebar-link {{ request()->is('admin/applications*') ? 'active' : '' }}">
                         <i data-lucide="inbox"></i><span>Applications</span>
                     </a>
+                    <a href="/admin/top-ups" class="sidebar-link {{ request()->is('admin/top-ups*') ? 'active' : '' }}">
+                        <i data-lucide="wallet"></i><span>Top-up Requests</span>
+                    </a>
                     <a href="/admin/users" class="sidebar-link {{ request()->is('admin/users*') ? 'active' : '' }}">
                         <i data-lucide="users"></i><span>Users</span>
                     </a>
@@ -943,6 +946,13 @@
                     </a>
                 </div>
             @endif
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Account</div>
+                <a href="/wallet" class="sidebar-link {{ request()->is('wallet*') ? 'active' : '' }}">
+                    <i data-lucide="wallet"></i><span>My Wallet</span>
+                </a>
+            </div>
         @endauth
 
         @guest
