@@ -9,8 +9,8 @@
             <span class="h-2 w-2 rounded-full bg-[var(--cyan)]"></span>
             PhantomTrade Economy
         </div>
-        <h1 class="text-[26px] font-semibold tracking-tight text-[var(--text)]">My Wallet</h1>
-        <p class="mt-1 max-w-2xl text-[13.5px] text-[var(--text-secondary)]">Manage your Ecto balance and track your wallet activity in one place.</p>
+        <h1 class="text-[26px] font-semibold tracking-tight text-[var(--text)]">Ecto Wallet</h1>
+        <p class="mt-1 max-w-2xl text-[13.5px] text-[var(--text-secondary)]">Manage your spectral currency and review wallet activity.</p>
     </div>
     <span class="inline-flex w-fit items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--text-muted)]">
         <span class="h-2 w-2 rounded-full bg-[var(--warning)]"></span>
@@ -33,11 +33,11 @@
 
 <div class="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-5">
     <section class="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm lg:col-span-3 sm:p-8">
-        <div class="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-[var(--accent-soft)] opacity-70 blur-3xl"></div>
+        <div class="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-[var(--accent-soft)] opacity-30 blur-3xl"></div>
         <div class="relative">
             <div class="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
                 <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]">✦</span>
-                Available Ecto
+                Available balance
             </div>
             <div class="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <span class="text-4xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl">{{ number_format($user->ecto) }}</span>
@@ -60,23 +60,55 @@
                 </div>
                 <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-lg text-[var(--accent)]"><i data-lucide="wallet"></i></span>
             </div>
-            <form method="POST" action="{{ url('/wallet') }}" class="mt-5 space-y-4">
+            <form method="POST" action="{{ url('/wallet') }}" class="mt-5 space-y-4" id="ecto-top-up-form">
                 @csrf
                 <div>
-                    <label for="amount" class="mb-2 block text-sm font-medium text-[var(--text)]">Amount <span class="font-normal text-[var(--text-muted)]">(10–10,000 Ecto)</span></label>
+                    <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Choose an amount</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        @foreach ([100, 250, 500, 1000] as $preset)
+                            <button type="button" data-ecto-preset="{{ $preset }}" class="ecto-preset rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2.5 text-sm font-semibold text-[var(--text-secondary)] transition hover:border-[var(--accent)] hover:text-[var(--text)]">
+                                {{ number_format($preset) }} <span class="text-xs font-medium">Ecto</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+                <div>
+                    <label for="amount" class="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Custom amount</label>
                     <div class="relative">
-                        <input id="amount" name="amount" type="number" min="10" max="10000" step="1" required value="{{ old('amount', 100) }}" class="w-full rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 pr-20 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20">
-                        <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold tracking-wide text-[var(--text-muted)]">ECTO</span>
+                        <input id="amount" name="amount" type="number" min="10" max="10000" step="1" required value="{{ old('amount', 100) }}" placeholder="Enter amount…" class="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3.5 py-3 pr-20 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15">
+                        <span class="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-semibold tracking-wide text-[var(--text-muted)]">ECTO</span>
                     </div>
                     @error('amount')
                         <p class="mt-2 text-xs text-[var(--danger)]">{{ $message }}</p>
                     @enderror
                 </div>
-                <button type="submit" class="btn-primary inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition">
-                    Submit request <span aria-hidden="true">→</span>
+                <button type="submit" class="btn-primary inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition">
+                    Submit demo request <i data-lucide="arrow-right" class="h-4 w-4"></i>
                 </button>
             </form>
-            <p class="mt-4 border-t border-[var(--border)] pt-4 text-xs leading-5 text-[var(--text-muted)]">Demo only. No real payment is processed. Ecto is credited after an administrator approves the request.</p>
+            <p class="mt-4 flex items-start gap-2 border-t border-[var(--border)] pt-4 text-xs leading-5 text-[var(--text-muted)]"><i data-lucide="info" class="mt-0.5 h-3.5 w-3.5 shrink-0"></i><span>Demo only. No real payment is processed. Ecto is credited only after an administrator approves your request.</span></p>
+            <script>
+                (() => {
+                    const form = document.getElementById('ecto-top-up-form');
+                    if (!form) return;
+                    const amount = form.querySelector('#amount');
+                    const presets = [...form.querySelectorAll('[data-ecto-preset]')];
+                    const sync = () => {
+                        presets.forEach((button) => {
+                            const selected = Number(button.dataset.ectoPreset) === Number(amount.value);
+                            button.style.background = selected ? 'var(--accent-soft)' : 'var(--surface-soft)';
+                            button.style.borderColor = selected ? 'var(--accent)' : 'var(--border)';
+                            button.style.color = selected ? 'var(--accent)' : 'var(--text-secondary)';
+                        });
+                    };
+                    presets.forEach((button) => button.addEventListener('click', () => {
+                        amount.value = button.dataset.ectoPreset;
+                        sync();
+                    }));
+                    amount.addEventListener('input', sync);
+                    sync();
+                })();
+            </script>
         </section>
     @else
         <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm lg:col-span-2 sm:p-7">
