@@ -102,6 +102,14 @@ class WalletController extends Controller
                 'reviewed_at' => now(),
                 'rejection_reason' => null,
             ]);
+
+            AppNotification::create([
+                'user_id' => $user->id,
+                'title' => 'Ecto top-up approved',
+                'body' => number_format($amount) . ' Ecto has been added to your wallet.',
+                'icon' => 'circle-check',
+                'url' => '/wallet',
+            ]);
         });
 
         return redirect('/admin/top-ups')->with('success', 'Demo top-up approved and Ecto credited.');
@@ -123,6 +131,16 @@ class WalletController extends Controller
                 'reviewed_by' => auth()->id(),
                 'reviewed_at' => now(),
                 'rejection_reason' => $validated['reason'] ?? null,
+            ]);
+
+            AppNotification::create([
+                'user_id' => $topUp->user_id,
+                'title' => 'Ecto top-up declined',
+                'body' => !empty($validated['reason'])
+                    ? 'Your ' . number_format($topUp->amount) . ' Ecto request was declined. Reason: ' . $validated['reason']
+                    : 'Your ' . number_format($topUp->amount) . ' Ecto request was declined. You can review the details in your wallet.',
+                'icon' => 'circle-x',
+                'url' => '/wallet',
             ]);
         });
 
