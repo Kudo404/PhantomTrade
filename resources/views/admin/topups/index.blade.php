@@ -9,7 +9,10 @@
 </div>
 
 @if (session('success'))
-    <div class="card mb-5 p-4">{{ session('success') }}</div>
+    <div role="status" class="mb-5 rounded-xl border border-[var(--success)]/30 bg-[var(--success-bg)] p-4 text-sm text-[var(--success)]">{{ session('success') }}</div>
+@endif
+@if (session('error'))
+    <div role="alert" class="mb-5 rounded-xl border border-[var(--danger)]/30 bg-[var(--danger-bg)] p-4 text-sm text-[var(--danger)]">{{ session('error') }}</div>
 @endif
 @if ($errors->any())
     <div class="card mb-5 p-4 text-red-600">{{ $errors->first() }}</div>
