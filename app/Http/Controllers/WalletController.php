@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppNotification;
 use App\Models\TopUpRequest;
 use App\Models\User;
 use App\Models\WalletTransaction;
@@ -22,18 +23,33 @@ class WalletController extends Controller
 
     public function store(Request $request)
     {
+        if (auth()->user()->isAdmin()) {
+            return redirect('/admin/top-ups')->with('error', 'Administrator accounts review top-up requests and cannot submit top-ups.');
+        }
+
         $validated = $request->validate([
             'amount' => 'required|integer|min:10|max:10000',
         ]);
 
-        TopUpRequest::create([
+        $topUp = TopUpRequest::create([
             'user_id' => auth()->id(),
             'amount' => (int) $validated['amount'],
             'method' => 'demo',
             'status' => 'pending',
         ]);
 
-        return redirect('/wallet')->with('success', 'Demo top-up request submitted. Ecto is added only after admin approval.');
+        $requester = auth()->user();
+        User::where('role', 'admin')->get()->each(function (User $admin) use ($requester, $topUp) {
+            AppNotification::create([
+                'user_id' => $admin->id,
+                'title' => 'New Ecto top-up request',
+                'body' => $requester->name . ' requested ' . number_format($topUp->amount) . ' Ecto for review.',
+                'icon' => 'wallet',
+                'url' => '/admin/top-ups?status=pending',
+            ]);
+        });
+
+        return redirect('/wallet')->with('success', 'Demo top-up request submitted. An administrator has been notified. Ecto is added only after approval.');
     }
 
     public function adminIndex(Request $request)
