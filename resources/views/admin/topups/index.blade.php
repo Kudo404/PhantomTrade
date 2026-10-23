@@ -18,18 +18,18 @@
     <div class="card mb-5 p-4 text-red-600">{{ $errors->first() }}</div>
 @endif
 
-<div class="card p-5 mb-5">
+<div class="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 mb-5 shadow-sm">
     <form method="GET" action="/admin/top-ups" class="flex flex-wrap items-end gap-3">
         <div>
-            <label for="status" class="block text-sm mb-1">Status</label>
-            <select id="status" name="status" class="rounded border p-2">
+            <label for="status" class="block text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)] mb-2">Filter by status</label>
+            <select id="status" name="status" class="min-w-44 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5 text-sm text-[var(--text)] shadow-none outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15">
                 <option value="">All statuses</option>
                 @foreach (['pending', 'approved', 'rejected'] as $status)
                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ ucfirst($status) }}</option>
                 @endforeach
             </select>
         </div>
-        <button class="rounded px-4 py-2 border" type="submit">Filter</button>
+        <button class="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2.5 text-sm font-semibold text-[var(--text)] transition hover:bg-[var(--surface-hover)]" type="submit"><i data-lucide="list-filter" class="h-4 w-4"></i> Apply filter</button>
     </form>
 </div>
 
