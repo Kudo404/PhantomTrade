@@ -51,32 +51,41 @@
         </div>
     </section>
 
-    <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm lg:col-span-2 sm:p-7">
-        <div class="flex items-start justify-between gap-3">
-            <div>
-                <h2 class="text-base font-semibold text-[var(--text)]">Add demo Ecto</h2>
-                <p class="mt-1 text-sm leading-5 text-[var(--text-secondary)]">Submit a top-up request for admin review.</p>
-            </div>
-            <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-lg text-[var(--accent)]">＋</span>
-        </div>
-        <form method="POST" action="{{ url('/wallet') }}" class="mt-5 space-y-4">
-            @csrf
-            <div>
-                <label for="amount" class="mb-2 block text-sm font-medium text-[var(--text)]">Amount <span class="font-normal text-[var(--text-muted)]">(10–10,000 Ecto)</span></label>
-                <div class="relative">
-                    <input id="amount" name="amount" type="number" min="10" max="10000" step="1" required value="{{ old('amount', 100) }}" class="w-full rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 pr-20 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20">
-                    <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold tracking-wide text-[var(--text-muted)]">ECTO</span>
+    @unless (auth()->user()->isAdmin())
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm lg:col-span-2 sm:p-7">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h2 class="text-base font-semibold text-[var(--text)]">Request Ecto</h2>
+                    <p class="mt-1 text-sm leading-5 text-[var(--text-secondary)]">Submit a demo top-up for administrator review.</p>
                 </div>
-                @error('amount')
-                    <p class="mt-2 text-xs text-[var(--danger)]">{{ $message }}</p>
-                @enderror
+                <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-lg text-[var(--accent)]"><i data-lucide="wallet"></i></span>
             </div>
-            <button type="submit" class="btn-primary inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition">
-                Submit top-up request <span aria-hidden="true">→</span>
-            </button>
-        </form>
-        <p class="mt-4 border-t border-[var(--border)] pt-4 text-xs leading-5 text-[var(--text-muted)]">This is a simulation only. No GCash, bank transfer, or payment gateway is connected.</p>
-    </section>
+            <form method="POST" action="{{ url('/wallet') }}" class="mt-5 space-y-4">
+                @csrf
+                <div>
+                    <label for="amount" class="mb-2 block text-sm font-medium text-[var(--text)]">Amount <span class="font-normal text-[var(--text-muted)]">(10–10,000 Ecto)</span></label>
+                    <div class="relative">
+                        <input id="amount" name="amount" type="number" min="10" max="10000" step="1" required value="{{ old('amount', 100) }}" class="w-full rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 pr-20 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20">
+                        <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold tracking-wide text-[var(--text-muted)]">ECTO</span>
+                    </div>
+                    @error('amount')
+                        <p class="mt-2 text-xs text-[var(--danger)]">{{ $message }}</p>
+                    @enderror
+                </div>
+                <button type="submit" class="btn-primary inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition">
+                    Submit request <span aria-hidden="true">→</span>
+                </button>
+            </form>
+            <p class="mt-4 border-t border-[var(--border)] pt-4 text-xs leading-5 text-[var(--text-muted)]">Demo only. No real payment is processed. Ecto is credited after an administrator approves the request.</p>
+        </section>
+    @else
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm lg:col-span-2 sm:p-7">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]"><i data-lucide="shield-check"></i></div>
+            <h2 class="mt-4 text-base font-semibold text-[var(--text)]">Administrator wallet</h2>
+            <p class="mt-2 text-sm leading-6 text-[var(--text-secondary)]">Administrator accounts review user top-up requests instead of submitting their own. Use the review queue to approve or reject pending demo requests.</p>
+            <a href="/admin/top-ups?status=pending" class="btn-primary mt-5 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold">Review pending requests <span aria-hidden="true">→</span></a>
+        </section>
+    @endunless
 </div>
 
 <section class="mb-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
