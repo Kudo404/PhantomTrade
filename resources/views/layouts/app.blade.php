@@ -943,6 +943,13 @@
                     </a>
                 </div>
             @endif
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Account</div>
+                <a href="/wallet" class="sidebar-link {{ request()->is('wallet*') ? 'active' : '' }}">
+                    <i data-lucide="wallet"></i><span>My Wallet</span>
+                </a>
+            </div>
         @endauth
 
         @guest
