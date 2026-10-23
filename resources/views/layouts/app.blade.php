@@ -847,6 +847,58 @@
                 transition-duration: .01ms !important;
             }
         }
+
+        /* In-app notification toasts use the active light/dark theme tokens. */
+        .notification-toast-region {
+            position: fixed;
+            top: 82px;
+            right: 22px;
+            z-index: 2200;
+            display: grid;
+            width: min(390px, calc(100vw - 28px));
+            gap: 10px;
+            pointer-events: none;
+        }
+        .notification-toast {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: var(--shadow-lg);
+            pointer-events: auto;
+            animation: notification-toast-in .22s ease-out;
+        }
+        .notification-toast-icon {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            flex: 0 0 36px;
+            place-items: center;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+        .notification-toast-icon i { width: 17px; height: 17px; }
+        .notification-toast-copy { min-width: 0; flex: 1; }
+        .notification-toast-title { margin-bottom: 3px; font-size: 12.5px; font-weight: 750; }
+        .notification-toast-body { color: var(--text-secondary); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+        .notification-toast-close {
+            display: grid; width: 26px; height: 26px; flex: 0 0 26px;
+            place-items: center; border: 0; border-radius: 7px;
+            background: transparent; color: var(--text-muted); cursor: pointer;
+        }
+        .notification-toast-close:hover { background: var(--surface-soft); color: var(--text); }
+        .notification-toast-close i { width: 14px; height: 14px; }
+        .notification-toast.is-leaving { opacity: 0; transform: translateX(12px); transition: opacity .22s, transform .22s; }
+        @keyframes notification-toast-in { from { opacity: 0; transform: translateY(-7px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 520px) {
+            .notification-toast-region { top: 74px; right: 12px; width: calc(100vw - 24px); }
+        }
     </style>
 </head>
 
@@ -882,6 +934,9 @@
                     </a>
                     <a href="/admin/applications" class="sidebar-link {{ request()->is('admin/applications*') ? 'active' : '' }}">
                         <i data-lucide="inbox"></i><span>Applications</span>
+                    </a>
+                    <a href="/admin/top-ups" class="sidebar-link {{ request()->is('admin/top-ups*') ? 'active' : '' }}">
+                        <i data-lucide="wallet"></i><span>Top-up Requests</span>
                     </a>
                     <a href="/admin/users" class="sidebar-link {{ request()->is('admin/users*') ? 'active' : '' }}">
                         <i data-lucide="users"></i><span>Users</span>
@@ -943,6 +998,13 @@
                     </a>
                 </div>
             @endif
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Account</div>
+                <a href="/wallet" class="sidebar-link {{ request()->is('wallet*') ? 'active' : '' }}">
+                    <i data-lucide="wallet"></i><span>My Wallet</span>
+                </a>
+            </div>
         @endauth
 
         @guest
@@ -1234,7 +1296,45 @@
             }
         });
 
-        const NOTIF_POLL_MS = 60000;
+        const NOTIF_POLL_MS = 15000;
+        let knownNotificationIds = null;
+
+        function showNotificationToast(notification) {
+            let region = document.getElementById('notificationToastRegion');
+            if (!region) {
+                region = document.createElement('div');
+                region.id = 'notificationToastRegion';
+                region.className = 'notification-toast-region';
+                region.setAttribute('aria-live', 'polite');
+                region.setAttribute('aria-relevant', 'additions');
+                document.body.appendChild(region);
+            }
+
+            const rawIcon = String(notification.icon || 'bell');
+            const iconName = notificationIcons[rawIcon] || (/^[a-z0-9-]+$/i.test(rawIcon) ? rawIcon : 'bell');
+            const toast = document.createElement('div');
+            toast.className = 'notification-toast';
+            toast.innerHTML = `
+                <div class="notification-toast-icon"><i data-lucide="${escapeHtml(iconName)}"></i></div>
+                <div class="notification-toast-copy">
+                    <div class="notification-toast-title">${escapeHtml(notification.title || 'New notification')}</div>
+                    <div class="notification-toast-body">${escapeHtml(notification.body || '')}</div>
+                </div>
+                <button type="button" class="notification-toast-close" aria-label="Dismiss notification"><i data-lucide="x"></i></button>
+            `;
+            toast.querySelector('.notification-toast-close').addEventListener('click', () => dismissNotificationToast(toast));
+            region.prepend(toast);
+            renderIcons();
+
+            while (region.children.length > 4) region.lastElementChild.remove();
+            window.setTimeout(() => dismissNotificationToast(toast), 6500);
+        }
+
+        function dismissNotificationToast(toast) {
+            if (!toast || !toast.isConnected || toast.classList.contains('is-leaving')) return;
+            toast.classList.add('is-leaving');
+            window.setTimeout(() => toast.remove(), 240);
+        }
 
         // Convert existing notification icon values to consistent Lucide icons.
         const notificationIcons = {
@@ -1288,6 +1388,18 @@
                 if (!response.ok) return;
 
                 const data = await response.json();
+                const notifications = Array.isArray(data.notifications) ? data.notifications : [];
+                const currentIds = new Set(notifications.map(notification => Number(notification.id)).filter(Boolean));
+
+                // The first poll establishes a baseline; later polls toast only genuinely new items.
+                if (knownNotificationIds !== null) {
+                    notifications
+                        .filter(notification => !knownNotificationIds.has(Number(notification.id)))
+                        .reverse()
+                        .forEach(showNotificationToast);
+                }
+                knownNotificationIds = currentIds;
+
                 const dot = document.getElementById('bellDot');
 
                 if (dot) {
@@ -1298,8 +1410,6 @@
 
                 const list = document.getElementById('bellList');
                 if (!list) return;
-
-                const notifications = Array.isArray(data.notifications) ? data.notifications : [];
 
                 if (!notifications.length) {
                     list.innerHTML = '<div class="bell-empty">No notifications yet</div>';
