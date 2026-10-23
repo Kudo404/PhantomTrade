@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TopUpRequest;
+use App\\Models\\AppNotification;
+use App\\Models\\TopUpRequest;
 use App\Models\User;
 use App\Models\WalletTransaction;
 use Illuminate\Http\Request;
